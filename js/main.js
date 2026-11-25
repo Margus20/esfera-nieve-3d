@@ -1,6 +1,7 @@
 import * as dom from './dom.js';
 import { state, GENERATION_PRICE_USD, VIDEO_DURATION_MS } from './state.js';
-import { initThree, updatePhoto, updateBaseText, updateBaseTheme, shake3DSnow, getRendererCanvas } from './three-scene.js';
+// Añadimos clearFrost3D y addFrost3D a las importaciones
+import { initThree, updatePhoto, updateBaseText, updateBaseTheme, shake3DSnow, getRendererCanvas, clearFrost3D, addFrost3D } from './three-scene.js';
 import { iniciarProcesoVideo } from './payment.js';
 
 /* ==========================================================================
@@ -21,9 +22,9 @@ dom.photoInput.addEventListener("change", (e) => {
     const img = new Image();
     img.onload = () => {
       state.userImage = img;
-      updatePhoto(img); // Manda la foto a Three.js
+      updatePhoto(img); // Manda la foto a Three.js (esto ya empaña el cristal automáticamente)
       shake3DSnow();    // Agita la nieve al poner la foto
-      dom.setStatus("Foto cargada en 3D. Gira la esfera con el dedo.");
+      dom.setStatus("Foto cargada. Pulsa 'Limpiar escarcha' para verla.");
     };
     img.src = event.target.result;
   };
@@ -48,17 +49,19 @@ dom.themeChips.forEach((chip) => {
 });
 
 /* ==========================================================================
-   3. ACCIONES 3D (AGITAR, ESCARCHA Y SENSOR)
+   3. ACCIONES 3D (AGITAR, LIMPIAR ESCARCHA Y SENSOR)
    ========================================================================== */
+// Botón Agitar: Mueve la nieve y vuelve a empañar el cristal
 dom.shakeBtn.addEventListener("click", () => {
   shake3DSnow();
-  dom.setStatus("¡Nieve agitada!");
+  addFrost3D(); // Vuelve a poner escarcha
+  dom.setStatus("¡Nieve agitada! La escarcha ha vuelto.");
 });
 
-// El efecto de escarcha raspable en 3D requiere shaders avanzados. 
-// Por ahora mostramos un mensaje para no romper la app.
+// Botón Limpiar Escarcha: Hace la animación de transparencia automática
 dom.frostBtn.addEventListener("click", () => {
-  dom.setStatus("El efecto de escarcha estará disponible pronto en 3D.");
+  clearFrost3D();
+  dom.setStatus("Limpiando la escarcha... ¡Mira cómo se revela la foto!");
 });
 
 // Sensor de movimiento (Agitar el dispositivo físico)
@@ -69,6 +72,7 @@ window.addEventListener("devicemotion", (e) => {
   const delta = Math.abs(acc.x - lastAccel.x) + Math.abs(acc.y - lastAccel.y) + Math.abs(acc.z - lastAccel.z);
   if (delta > 28) {
     shake3DSnow();
+    addFrost3D(); // Empaña al agitar físicamente
     dom.setStatus("¡Agitado por movimiento!");
   }
   lastAccel = { x: acc.x, y: acc.y, z: acc.z };
@@ -131,7 +135,9 @@ async function recordAndDownloadVideo(durationMs = VIDEO_DURATION_MS) {
   state.isRecording = true;
   dom.videoBtn.disabled = true;
   dom.setStatus("Grabando clip 3D...");
-  shake3DSnow(); // Agitamos la nieve para que el video se vea increíble
+  
+  // Al grabar, aseguramos que la nieve caiga
+  shake3DSnow(); 
 
   recorder.ondataavailable = (event) => {
     if (event.data && event.data.size > 0) chunks.push(event.data);
