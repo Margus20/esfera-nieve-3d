@@ -31,18 +31,24 @@ input[type="text"] {
   border: 1px solid rgba(255, 255, 255, 0.15);
   background: rgba(2, 6, 23, 0.5);
   color: var(--text-light);
-  font-size: 1rem;
+  font-size: 1.1rem;
   text-align: center;
   outline: none;
   transition: border-color 0.2s;
+  font-family: 'Mountains of Christmas', cursive, sans-serif; /* Fuente navideña */
+  font-weight: 700;
+  letter-spacing: 1px;
 }
 
 input[type="text"]:focus {
-  border-color: #38bdf8;
+  border-color: #eab308; /* Dorado al enfocar */
 }
 
 input[type="text"]::placeholder {
   color: #94a3b8;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-weight: 400;
+  letter-spacing: normal;
 }
 
 /* Fila de Temas (Madera, Oro, Noche) */
@@ -59,16 +65,17 @@ input[type="text"]::placeholder {
   border: 1px solid rgba(255, 255, 255, 0.1);
   background: rgba(255, 255, 255, 0.05);
   color: #cbd5e1;
-  font-size: 0.8rem;
+  font-size: 0.85rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .theme-chip.active {
-  background: var(--text-light);
+  background: #eab308; /* Dorado */
   color: #0f172a;
-  border-color: var(--text-light);
+  border-color: #eab308;
+  box-shadow: 0 0 10px rgba(234, 179, 8, 0.4);
 }
 
 /* Cuadrícula de Botones */
@@ -78,54 +85,75 @@ input[type="text"]::placeholder {
   gap: 10px;
 }
 
+/* Estilo base de los botones con fuente navideña */
 .btn {
   width: 100%;
   min-height: 44px;
   padding: 10px 12px;
   border-radius: var(--radius-md);
   border: none;
-  font-size: 0.9rem;
+  font-family: 'Mountains of Christmas', cursive, sans-serif;
+  font-size: 1.2rem; /* Letra un poco más grande por la fuente */
   font-weight: 700;
   text-align: center;
   cursor: pointer;
-  transition: transform 0.1s ease, filter 0.2s ease;
+  transition: transform 0.1s ease, filter 0.2s ease, box-shadow 0.2s ease;
   display: flex;
   align-items: center;
   justify-content: center;
+  text-shadow: 0px 1px 2px rgba(0,0,0,0.3); /* Le da un poco de volumen al texto */
+  letter-spacing: 0.5px;
 }
 
 .btn:active {
   transform: scale(0.96);
 }
 
-.btn-photo {
-  background: #f8fafc;
-  color: #0f172a;
-}
-.btn-shake {
-  background: #38bdf8;
-  color: #082f49;
-}
-.btn-frost {
-  background: #bae6fd;
-  color: #0c4a6e;
-}
-.btn-video {
-  background: #facc15;
-  color: #422006;
-}
-.btn-share {
-  background: #4ade80;
-  color: #052e16;
-}
 .btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+  filter: grayscale(100%);
+  text-shadow: none;
 }
 
+/* --- COLORES NAVIDEÑOS PARA LOS BOTONES --- */
+
+/* 1. Seleccionar foto: Rojo Navidad */
+.btn-photo {
+  background: linear-gradient(145deg, #ef4444, #b91c1c);
+  color: #ffffff;
+}
+
+/* 2. Agitar nieve: Dorado / Adorno */
+.btn-shake {
+  background: linear-gradient(145deg, #fde047, #ca8a04);
+  color: #422006;
+  text-shadow: none; /* El dorado se ve mejor sin sombra oscura */
+}
+
+/* 3. Limpiar escarcha: Azul Hielo */
+.btn-frost {
+  background: linear-gradient(145deg, #e0f2fe, #7dd3fc);
+  color: #0c4a6e;
+  text-shadow: none;
+}
+
+/* 4. Video: Verde Pino */
+.btn-video {
+  background: linear-gradient(145deg, #22c55e, #15803d);
+  color: #ffffff;
+}
+
+/* 5. Compartir: Rojo Vibrante */
+.btn-share {
+  background: linear-gradient(145deg, #f87171, #dc2626);
+  color: #ffffff;
+}
+
+/* Texto de estado */
 .status {
   min-height: 20px;
-  font-size: 0.8rem;
+  font-size: 0.85rem;
   color: #94a3b8;
   text-align: center;
   font-weight: 500;
@@ -165,31 +193,37 @@ input[type="text"]::placeholder {
 }
 
 .modal-card h2 {
-  font-size: 1.3rem;
+  font-size: 1.6rem;
   color: #f8fafc;
+  font-family: 'Mountains of Christmas', cursive, sans-serif;
 }
+
 .modal-card p {
   font-size: 0.95rem;
   color: #cbd5e1;
   line-height: 1.4;
 }
+
 .modal-note {
   font-size: 0.8rem !important;
   color: #94a3b8 !important;
 }
+
 .modal-actions {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 10px;
   margin-top: 10px;
 }
+
+/* Botones del modal */
 .btn-cancel {
   background: rgba(255, 255, 255, 0.1);
   color: #f8fafc;
 }
 .btn-confirm {
-  background: #4ade80;
-  color: #052e16;
+  background: linear-gradient(145deg, #22c55e, #15803d);
+  color: #ffffff;
 }
 
 /* ==========================================================================
@@ -197,12 +231,15 @@ input[type="text"]::placeholder {
    ========================================================================== */
 @media (min-width: 600px) {
   .panel { max-width: 420px; padding: 20px; gap: 14px; }
-  .btn { font-size: 1rem; min-height: 48px; }
+  .btn { font-size: 1.4rem; min-height: 48px; } /* Letra más grande en tablet */
   .theme-chip { font-size: 0.9rem; min-height: 42px; }
 }
 
 @media (min-width: 960px) {
   .panel { grid-area: panel; max-width: 400px; }
-  .btn:hover { filter: brightness(1.1); }
+  .btn:hover { 
+    filter: brightness(1.1); 
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  }
   .theme-chip:hover { background: rgba(255,255,255,0.15); }
 }
