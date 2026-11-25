@@ -1,0 +1,120 @@
+/* ==========================================================================
+   VARIABLES Y BASE (MOBILE FIRST)
+   ========================================================================== */
+:root {
+  /* Fondo más minimalista y limpio */
+  --bg-top: #e2e8f0;
+  --bg-bottom: #f8fafc;
+  
+  /* Paneles con efecto cristal */
+  --surface: rgba(15, 23, 42, 0.75);
+  --surface-hover: rgba(30, 41, 59, 0.85);
+  --border: rgba(255, 255, 255, 0.1);
+  
+  /* Textos */
+  --text-main: #1e293b;
+  --text-light: #f8fafc;
+  --text-muted: #475569;
+  
+  --radius-lg: 18px;
+  --radius-md: 12px;
+  --radius-sm: 10px;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+body {
+  min-height: 100dvh;
+  /* Fondo minimalista tipo Apple */
+  background: radial-gradient(circle at 50% 10%, var(--bg-bottom) 0%, var(--bg-top) 100%);
+  color: var(--text-main);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 16px 12px 24px;
+  gap: 14px;
+  overflow-x: hidden; /* Evita scroll horizontal en móviles */
+}
+
+/* ==========================================================================
+   ENCABEZADO FLUIDO
+   ========================================================================== */
+.header {
+  width: 100%;
+  max-width: 420px;
+  text-align: center;
+  z-index: 10;
+  cursor: pointer; /* Para el botón secreto de 5 toques */
+  user-select: none;
+}
+
+.header h1 {
+  font-size: clamp(1.4rem, 6vw, 1.9rem);
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  line-height: 1.2;
+  margin-bottom: 6px;
+  color: #0f172a;
+}
+
+.header p {
+  font-size: clamp(0.85rem, 3.5vw, 1rem);
+  color: var(--text-muted);
+  line-height: 1.4;
+  font-weight: 500;
+}
+
+/* ==========================================================================
+   FOOTER
+   ========================================================================== */
+.footer-note {
+  width: 100%;
+  max-width: 360px;
+  font-size: 0.75rem;
+  color: #64748b;
+  text-align: center;
+  line-height: 1.3;
+  margin-top: auto;
+}
+
+/* ==========================================================================
+   MEDIA QUERIES (TABLET Y ESCRITORIO)
+   ========================================================================== */
+@media (min-width: 600px) {
+  body {
+    justify-content: center;
+    padding: 24px 20px;
+    gap: 20px;
+  }
+}
+
+@media (min-width: 960px) {
+  body {
+    display: grid;
+    grid-template-columns: 400px 400px;
+    grid-template-areas:
+      "header header"
+      "stage  panel"
+      "footer footer";
+    align-items: center;
+    justify-content: center;
+    column-gap: 40px;
+    row-gap: 20px;
+    padding: 40px;
+  }
+
+  .header {
+    grid-area: header;
+    max-width: 840px;
+  }
+  .footer-note {
+    grid-area: footer;
+    max-width: 840px;
+  }
+}
