@@ -14,7 +14,6 @@ export function initThree() {
   const container = document.getElementById('canvas-container');
   if (!container) return;
 
-  // 1. Configuración básica de la escena
   scene = new THREE.Scene();
   scene.background = null; 
 
@@ -28,7 +27,6 @@ export function initThree() {
   renderer.toneMappingExposure = 1.0;
   container.appendChild(renderer.domElement);
 
-  // Controles táctiles
   controls = new OrbitControls(camera, renderer.domElement);
   controls.enableDamping = true; 
   controls.dampingFactor = 0.05;
@@ -37,7 +35,6 @@ export function initThree() {
   controls.maxDistance = 25;
   controls.maxPolarAngle = Math.PI / 2 + 0.2; 
 
-  // 2. Iluminación y Entorno
   const pmremGenerator = new THREE.PMREMGenerator(renderer);
   scene.environment = pmremGenerator.fromScene(new RoomEnvironment(), 0.04).texture;
 
@@ -59,29 +56,33 @@ export function initThree() {
   baseMesh.position.y = -4.5;
   scene.add(baseMesh);
 
-  // 3.1 LA PLAQUITA FRONTAL (Solo cubre 90 grados del frente)
+  // 3.1 LA PLAQUITA FRONTAL (Más delgada y estilizada)
   textCanvas = document.createElement('canvas');
-  textCanvas.width = 1024; 
-  textCanvas.height = 256;
+  // Aumentamos la resolución para que no tenga dientes de sierra
+  textCanvas.width = 2048; 
+  textCanvas.height = 512;
   textTexture = new THREE.CanvasTexture(textCanvas);
   textTexture.colorSpace = THREE.SRGBColorSpace;
+  textTexture.anisotropy = renderer.capabilities.getMaxAnisotropy(); // Mejora la nitidez
   
-  // Geometría de cilindro abierto, solo el frente (Math.PI / 2)
-  const textGeo = new THREE.CylinderGeometry(5.05, 5.15, 0.8, 64, 1, true, -Math.PI / 4, Math.PI / 2);
+  // Geometría de cilindro abierto, altura reducida a 0.6 para que sea estilizada
+  const textGeo = new THREE.CylinderGeometry(5.05, 5.15, 0.6, 64, 1, true, -Math.PI / 4, Math.PI / 2);
   const textMat = new THREE.MeshStandardMaterial({
     map: textTexture,
     transparent: true,
-    roughness: 0.5,
-    metalness: 0.2
+    roughness: 0.2, // Más brillante
+    metalness: 0.4  // Efecto metálico/oro
   });
   textMesh = new THREE.Mesh(textGeo, textMat);
   textMesh.position.y = -4.5;
   scene.add(textMesh);
 
-  // Actualizamos el texto inicial
-  updateBaseText("Feliz Navidad", state.currentTheme);
+  // Esperar a que la fuente navideña cargue antes de dibujar el texto
+  document.fonts.ready.then(() => {
+    updateBaseText(state.lastText || "Feliz Navidad", state.currentTheme);
+  });
 
-  // 4. La Foto (Tamaño ajustado para que se vea dentro)
+  // 4. La Foto
   const photoGeo = new THREE.PlaneGeometry(4, 4);
   const photoMat = new THREE.MeshBasicMaterial({ 
     color: 0xffffff,
@@ -90,23 +91,19 @@ export function initThree() {
     side: THREE.DoubleSide
   });
   photoPlane = new THREE.Mesh(photoGeo, photoMat);
-  photoPlane.position.set(0, 0, 0); // Centrada
+  photoPlane.position.set(0, 0, 0); 
   scene.add(photoPlane);
 
-  // 5. El Cristal de la Esfera
+  // 5. El Cristal (SOLUCIÓN DEFINITIVA: Usamos opacidad en lugar de transmission)
   const glassGeo = new THREE.SphereGeometry(5, 64, 64);
-  
   const glassMat = new THREE.MeshPhysicalMaterial({
     color: 0xffffff,
     metalness: 0.1,
-    roughness: 0.9,      // Empieza empañado
-    transmission: 0.1,   // Empieza opaco
-    thickness: 0.5,
-    ior: 1.5,
-    clearcoat: 1.0,
-    clearcoatRoughness: 0.8,
+    roughness: 0.9,      // Empieza empañado (rugoso)
     transparent: true,
-    opacity: 1.0
+    opacity: 0.85,       // Empieza semi-opaco
+    clearcoat: 1.0,
+    clearcoatRoughness: 0.8
   });
   globeGlass = new THREE.Mesh(glassGeo, glassMat);
   globeGlass.position.y = 0;
@@ -154,30 +151,56 @@ export function updateBaseText(text, themeName = "wood") {
   const ctx = textCanvas.getContext('2d');
   const theme = THEMES[themeName];
   
-  // Fondo de la placa (usamos el color plate del tema)
-  ctx.fillStyle = theme.plate; 
-  ctx.fillRect(0, 0, textCanvas.width, textCanvas.height);
+  // Fondo de la placa
+  if (themeName === 'midnight') {
+    // Efecto Cuarzo/Granito Blanco para Medianoche
+    ctx.fillStyle = '#f8fafc'; 
+    ctx.fillRect(0, 0, textCanvas.width, textCanvas.height);
+    // Sutiles vetas de granito
+    ctx.fillStyle = '#e2e8f0';
+    for(let i=0; i<50; i++) {
+       ctx.fillRect(Math.random()*textCanvas.width, Math.random()*textCanvas.height, Math.random()*40, 2);
+    }
+    ctx.fillStyle = theme.text; // Texto azul oscuro
+  } else {
+    // Efecto Oro Pulido para Madera y Dorado
+    const grad = ctx.createLinearGradient(0, 0, 0, textCanvas.height);
+    grad.addColorStop(0, '#fdf08a');
+    grad.addColorStop(0.5, '#d4af37');
+    grad.addColorStop(1, '#b8860b');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, textCanvas.width, textCanvas.height);
+    ctx.fillStyle = theme.text; // Texto oscuro
+  }
   
-  // Bordes decorativos (superior e inferior)
-  ctx.fillStyle = theme.plateBorder;
-  ctx.fillRect(0, 0, textCanvas.width, 20);
-  ctx.fillRect(0, textCanvas.height - 20, textCanvas.width, 20);
+  // Bordes decorativos
+  ctx.fillStyle = 'rgba(0,0,0,0.3)';
+  ctx.fillRect(0, 0, textCanvas.width, 10);
+  ctx.fillRect(0, textCanvas.height - 10, textCanvas.width, 10);
   
-  // Color del texto dinámico (ej. azul oscuro para medianoche, marrón para madera)
-  ctx.fillStyle = theme.text; 
+  // Tipografía Navideña
+  let fontSize = 180; // Letra inicial grande
+  ctx.font = `bold ${fontSize}px 'Mountains of Christmas', cursive, serif`;
   
-  let fontSize = 120; 
-  ctx.font = `bold ${fontSize}px Georgia, serif`;
-  
-  // Auto-escalado para que quepa en la plaquita
-  while (ctx.measureText(text).width > textCanvas.width * 0.8 && fontSize > 20) {
-    fontSize -= 5;
-    ctx.font = `bold ${fontSize}px Georgia, serif`;
+  // Auto-escalado
+  while (ctx.measureText(text).width > textCanvas.width * 0.85 && fontSize > 40) {
+    fontSize -= 10;
+    ctx.font = `bold ${fontSize}px 'Mountains of Christmas', cursive, serif`;
   }
   
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
+  
+  // Sombra suave para simular grabado
+  ctx.shadowColor = 'rgba(0,0,0,0.4)';
+  ctx.shadowBlur = 4;
+  ctx.shadowOffsetX = 2;
+  ctx.shadowOffsetY = 2;
+  
   ctx.fillText(text, textCanvas.width / 2, textCanvas.height / 2);
+  
+  // Resetear sombra
+  ctx.shadowColor = 'transparent';
   
   if (textTexture) textTexture.needsUpdate = true;
 }
@@ -190,14 +213,13 @@ export function updatePhoto(img) {
   photoPlane.material.map = texture;
   photoPlane.material.needsUpdate = true;
   
-  addFrost3D(); // Empañar al poner foto nueva
+  addFrost3D(); 
 }
 
 export function updateBaseTheme(themeName) {
   const theme = THEMES[themeName];
   if (theme && baseMesh) {
     baseMesh.material.color.set(theme.stops[1]); 
-    // Al cambiar de tema, actualizamos el texto para que cambie de color
     updateBaseText(state.lastText || "Feliz Navidad", themeName);
   }
 }
@@ -216,14 +238,12 @@ export function addFrost3D() {
   isClearingFrost = false;
   if (globeGlass) {
     globeGlass.material.roughness = 0.9;
-    globeGlass.material.transmission = 0.1;
+    globeGlass.material.opacity = 0.85; // Vuelve a empañarse
     globeGlass.material.clearcoatRoughness = 0.8;
   }
 }
 
 export function getRendererCanvas() { return renderer.domElement; }
-
-// --- BUCLE DE ANIMACIÓN ---
 
 function onWindowResize() {
   const container = document.getElementById('canvas-container');
@@ -256,15 +276,15 @@ function animate() {
     snowParticles.geometry.attributes.position.needsUpdate = true;
   }
 
-  // --- ANIMACIÓN DE LIMPIEZA ---
+  // --- ANIMACIÓN DE LIMPIEZA (Usando Opacidad y Rugosidad) ---
   if (isClearingFrost && frostProgress > 0) {
     frostProgress -= 0.02; 
     if (frostProgress < 0) frostProgress = 0;
 
-    // Transición: 0.05 es cristal casi perfecto, 0.9 es empañado
-    globeGlass.material.roughness = THREE.MathUtils.lerp(0.05, 0.9, frostProgress);
-    globeGlass.material.transmission = THREE.MathUtils.lerp(1.0, 0.1, frostProgress);
-    globeGlass.material.clearcoatRoughness = THREE.MathUtils.lerp(0.1, 0.8, frostProgress);
+    // Transición suave: opacity de 0.85 a 0.0, roughness de 0.9 a 0.0
+    globeGlass.material.opacity = THREE.MathUtils.lerp(0.0, 0.85, frostProgress);
+    globeGlass.material.roughness = THREE.MathUtils.lerp(0.0, 0.9, frostProgress);
+    globeGlass.material.clearcoatRoughness = THREE.MathUtils.lerp(0.0, 0.8, frostProgress);
     globeGlass.material.needsUpdate = true;
   }
 
