@@ -4,10 +4,9 @@ import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { state, THEMES } from './state.js';
 
 let scene, camera, renderer, controls;
-let globeGlass, snowParticles, photoPlane, baseMesh, textCanvas, textTexture;
+let globeGlass, snowParticles, photoPlane, baseMesh, textMesh, textCanvas, textTexture;
 let snowVelocity = [];
 
-// Variables para el control de la escarcha automática
 let frostProgress = 1.0; // 1.0 = Empañado, 0.0 = Limpio
 let isClearingFrost = false;
 
@@ -20,7 +19,7 @@ export function initThree() {
   scene.background = null; 
 
   camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 1000);
-  camera.position.set(0, 2, 18); // Ajustado para ver bien la foto y la base
+  camera.position.set(0, 2, 18); 
 
   renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true });
   renderer.setSize(container.clientWidth, container.clientHeight);
@@ -29,7 +28,7 @@ export function initThree() {
   renderer.toneMappingExposure = 1.0;
   container.appendChild(renderer.domElement);
 
-  // Controles táctiles (Se mantienen intactos para girar la esfera)
+  // Controles táctiles
   controls = new OrbitControls(camera, renderer.domElement);
   controls.enableDamping = true; 
   controls.dampingFactor = 0.05;
@@ -49,25 +48,38 @@ export function initThree() {
   dirLight.position.set(5, 10, 7);
   scene.add(dirLight);
 
-  // 3. La Base (Cilindro)
+  // 3. La Base (Cilindro principal)
+  const baseGeo = new THREE.CylinderGeometry(5, 5.2, 1.5, 64);
+  const baseMat = new THREE.MeshStandardMaterial({
+    color: THEMES[state.currentTheme].stops[1],
+    roughness: 0.4,
+    metalness: 0.1
+  });
+  baseMesh = new THREE.Mesh(baseGeo, baseMat);
+  baseMesh.position.y = -4.5;
+  scene.add(baseMesh);
+
+  // 3.1 LA PLAQUITA FRONTAL (Solo cubre 90 grados del frente)
   textCanvas = document.createElement('canvas');
   textCanvas.width = 1024; 
   textCanvas.height = 256;
   textTexture = new THREE.CanvasTexture(textCanvas);
   textTexture.colorSpace = THREE.SRGBColorSpace;
   
-  updateBaseText("Feliz Navidad"); 
-
-  const baseGeo = new THREE.CylinderGeometry(5, 5.2, 1.5, 64);
-  const baseMat = new THREE.MeshStandardMaterial({
-    color: THEMES.wood.stops[1],
-    roughness: 0.4,
-    metalness: 0.1,
-    map: textTexture
+  // Geometría de cilindro abierto, solo el frente (Math.PI / 2)
+  const textGeo = new THREE.CylinderGeometry(5.05, 5.15, 0.8, 64, 1, true, -Math.PI / 4, Math.PI / 2);
+  const textMat = new THREE.MeshStandardMaterial({
+    map: textTexture,
+    transparent: true,
+    roughness: 0.5,
+    metalness: 0.2
   });
-  baseMesh = new THREE.Mesh(baseGeo, baseMat);
-  baseMesh.position.y = -4.5;
-  scene.add(baseMesh);
+  textMesh = new THREE.Mesh(textGeo, textMat);
+  textMesh.position.y = -4.5;
+  scene.add(textMesh);
+
+  // Actualizamos el texto inicial
+  updateBaseText("Feliz Navidad", state.currentTheme);
 
   // 4. La Foto (Tamaño ajustado para que se vea dentro)
   const photoGeo = new THREE.PlaneGeometry(4, 4);
@@ -78,18 +90,17 @@ export function initThree() {
     side: THREE.DoubleSide
   });
   photoPlane = new THREE.Mesh(photoGeo, photoMat);
-  photoPlane.position.set(0, 0, -0.5); 
+  photoPlane.position.set(0, 0, 0); // Centrada
   scene.add(photoPlane);
 
   // 5. El Cristal de la Esfera
   const glassGeo = new THREE.SphereGeometry(5, 64, 64);
   
-  // Inicialmente, el cristal está configurado como "empañado" (Alta rugosidad, baja transmisión)
   const glassMat = new THREE.MeshPhysicalMaterial({
     color: 0xffffff,
     metalness: 0.1,
-    roughness: 0.9,      // Alta rugosidad = Empañado
-    transmission: 0.1,   // Baja transmisión = No deja ver bien
+    roughness: 0.9,      // Empieza empañado
+    transmission: 0.1,   // Empieza opaco
     thickness: 0.5,
     ior: 1.5,
     clearcoat: 1.0,
@@ -137,23 +148,28 @@ export function initThree() {
   window.addEventListener('resize', onWindowResize);
 }
 
-// --- FUNCIONES EXPORTABLES PARA MAIN.JS ---
+// --- FUNCIONES EXPORTABLES ---
 
-export function updateBaseText(text) {
+export function updateBaseText(text, themeName = "wood") {
   const ctx = textCanvas.getContext('2d');
-  ctx.fillStyle = '#f5d77f'; 
+  const theme = THEMES[themeName];
+  
+  // Fondo de la placa (usamos el color plate del tema)
+  ctx.fillStyle = theme.plate; 
   ctx.fillRect(0, 0, textCanvas.width, textCanvas.height);
   
-  ctx.fillStyle = '#9a7b2c';
-  ctx.fillRect(0, 0, textCanvas.width, 15);
-  ctx.fillRect(0, textCanvas.height - 15, textCanvas.width, 15);
+  // Bordes decorativos (superior e inferior)
+  ctx.fillStyle = theme.plateBorder;
+  ctx.fillRect(0, 0, textCanvas.width, 20);
+  ctx.fillRect(0, textCanvas.height - 20, textCanvas.width, 20);
   
-  ctx.fillStyle = '#3b230a'; 
+  // Color del texto dinámico (ej. azul oscuro para medianoche, marrón para madera)
+  ctx.fillStyle = theme.text; 
   
-  // Auto-escalado del texto para que quepa perfecto
-  let fontSize = 100; 
+  let fontSize = 120; 
   ctx.font = `bold ${fontSize}px Georgia, serif`;
   
+  // Auto-escalado para que quepa en la plaquita
   while (ctx.measureText(text).width > textCanvas.width * 0.8 && fontSize > 20) {
     fontSize -= 5;
     ctx.font = `bold ${fontSize}px Georgia, serif`;
@@ -174,14 +190,15 @@ export function updatePhoto(img) {
   photoPlane.material.map = texture;
   photoPlane.material.needsUpdate = true;
   
-  // Al subir una nueva foto, volvemos a empañar el cristal automáticamente
-  addFrost3D();
+  addFrost3D(); // Empañar al poner foto nueva
 }
 
 export function updateBaseTheme(themeName) {
   const theme = THEMES[themeName];
   if (theme && baseMesh) {
     baseMesh.material.color.set(theme.stops[1]); 
+    // Al cambiar de tema, actualizamos el texto para que cambie de color
+    updateBaseText(state.lastText || "Feliz Navidad", themeName);
   }
 }
 
@@ -192,14 +209,8 @@ export function shake3DSnow() {
   });
 }
 
-// --- NUEVAS FUNCIONES PARA LA ESCARCHA AUTOMÁTICA ---
+export function clearFrost3D() { isClearingFrost = true; }
 
-// Función que activa la limpieza automática
-export function clearFrost3D() {
-  isClearingFrost = true;
-}
-
-// Función para volver a empañar el cristal
 export function addFrost3D() {
   frostProgress = 1.0;
   isClearingFrost = false;
@@ -210,9 +221,7 @@ export function addFrost3D() {
   }
 }
 
-export function getRendererCanvas() {
-  return renderer.domElement;
-}
+export function getRendererCanvas() { return renderer.domElement; }
 
 // --- BUCLE DE ANIMACIÓN ---
 
@@ -228,7 +237,6 @@ function animate() {
   requestAnimationFrame(animate);
   controls.update();
 
-  // Animación de la nieve
   if (snowParticles) {
     const positions = snowParticles.geometry.attributes.position.array;
     for (let i = 0; i < positions.length / 3; i++) {
@@ -248,12 +256,12 @@ function animate() {
     snowParticles.geometry.attributes.position.needsUpdate = true;
   }
 
-  // --- ANIMACIÓN AUTOMÁTICA DE LIMPIEZA DE ESCARCHA ---
+  // --- ANIMACIÓN DE LIMPIEZA ---
   if (isClearingFrost && frostProgress > 0) {
-    frostProgress -= 0.02; // Velocidad de la transición (más bajo = más lento)
+    frostProgress -= 0.02; 
     if (frostProgress < 0) frostProgress = 0;
 
-    // Interpolación suave entre empañado (1.0) y limpio (0.0)
+    // Transición: 0.05 es cristal casi perfecto, 0.9 es empañado
     globeGlass.material.roughness = THREE.MathUtils.lerp(0.05, 0.9, frostProgress);
     globeGlass.material.transmission = THREE.MathUtils.lerp(1.0, 0.1, frostProgress);
     globeGlass.material.clearcoatRoughness = THREE.MathUtils.lerp(0.1, 0.8, frostProgress);
