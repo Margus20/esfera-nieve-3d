@@ -10,7 +10,7 @@
 
   <header class="header">
     <h1>Esfera de Nieve Interactiva</h1>
-    <p>Sube una foto, limpia la escarcha con el dedo, agita la nieve y comparte tu postal.</p>
+    <p>Sube una foto, limpia la escarcha con el dedo, agita la nieve y descarga tu clip de video.</p>
   </header>
 
   <main class="stage">
@@ -38,18 +38,31 @@
     <div class="action-grid">
       <button type="button" class="btn btn-shake" id="shakeBtn">Agitar nieve</button>
       <button type="button" class="btn btn-frost" id="frostBtn">Poner escarcha</button>
-      <button type="button" class="btn btn-download" id="downloadBtn">Descargar</button>
+      <button type="button" class="btn btn-video" id="videoBtn">Video ($1)</button>
       <button type="button" class="btn btn-share" id="shareBtn">Compartir</button>
     </div>
 
     <p class="status" id="statusMsg"></p>
   </section>
 
+  <!-- Modal de confirmación de $1 por generación -->
+  <div class="modal-backdrop" id="payModal" aria-hidden="true">
+    <div class="modal-card">
+      <h2>Generar clip de video</h2>
+      <p>Cada generación de video tiene un costo de <strong>$1.00</strong>.</p>
+      <p class="modal-note">Modo de prueba en front-end: confirma para simular el pago y grabar 4 segundos de animación.</p>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-cancel" id="cancelPayBtn">Cancelar</button>
+        <button type="button" class="btn btn-confirm" id="confirmPayBtn">Pagar $1 y grabar</button>
+      </div>
+    </div>
+  </div>
+
   <footer class="footer-note">
     Usa únicamente fotos propias o con permiso para compartir con tus familiares.
   </footer>
 
   <script src="app.js"></script>
-</body
-  >
+</bod
+  y>
 </html>
