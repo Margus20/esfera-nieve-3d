@@ -4,414 +4,52 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Esfera de Nieve Interactiva</title>
-  <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    }
-
-    body {
-      min-height: 100vh;
-      background: radial-gradient(circle at top, #1b2a4a 0%, #0b132b 100%);
-      color: #ffffff;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-      gap: 18px;
-    }
-
-    h1 {
-      font-size: 1.5rem;
-      text-align: center;
-      letter-spacing: 0.5px;
-    }
-
-    .subtitle {
-      font-size: 0.92rem;
-      color: #cbd5e1;
-      text-align: center;
-      max-width: 360px;
-    }
-
-    .canvas-wrapper {
-      position: relative;
-      width: 320px;
-      height: 390px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    canvas {
-      width: 320px;
-      height: 390px;
-      border-radius: 20px;
-      cursor: pointer;
-      touch-action: manipulation;
-    }
-
-    .controls {
-      width: 100%;
-      max-width: 340px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      background: rgba(255, 255, 255, 0.08);
-      padding: 16px;
-      border-radius: 16px;
-      backdrop-filter: blur(8px);
-      border: 1px solid rgba(255, 255, 255, 0.14);
-    }
-
-    label.file-btn, button {
-      width: 100%;
-      padding: 12px 14px;
-      border-radius: 12px;
-      border: none;
-      font-size: 0.95rem;
-      font-weight: 600;
-      text-align: center;
-      cursor: pointer;
-      transition: transform 0.15s ease, opacity 0.15s ease;
-    }
-
-    label.file-btn:active, button:active {
-      transform: scale(0.98);
-    }
-
-    .file-btn {
-      background: #e2e8f0;
-      color: #0f172a;
-      display: block;
-    }
-
-    input[type="file"] {
-      display: none;
-    }
-
-    input[type="text"] {
-      width: 100%;
-      padding: 11px 14px;
-      border-radius: 12px;
-      border: 1px solid rgba(255, 255, 255, 0.25);
-      background: rgba(15, 23, 42, 0.65);
-      color: #ffffff;
-      font-size: 0.95rem;
-      text-align: center;
-      outline: none;
-    }
-
-    input[type="text"]::placeholder {
-      color: #94a3b8;
-    }
-
-    .btn-row {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-    }
-
-    .btn-shake {
-      background: #38bdf8;
-      color: #082f49;
-    }
-
-    .btn-download {
-      background: #facc15;
-      color: #422006;
-    }
-  </style>
+  <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
 
-  <h1>Esfera de Nieve Digital</h1>
-  <p class="subtitle">Elige una foto, escribe una dedicatoria, agita la esfera y descarga tu postal para compartir.</p>
+  <header class="header">
+    <h1>Esfera de Nieve Interactiva</h1>
+    <p>Sube una foto, limpia la escarcha con el dedo, agita la nieve y comparte tu postal.</p>
+  </header>
 
-  <div class="canvas-wrapper">
+  <main class="stage">
     <canvas id="globeCanvas" width="640" height="780"></canvas>
-  </div>
+  </main>
 
-  <div class="controls">
-    <label for="photoInput" class="file-btn">Seleccionar foto personal</label>
+  <section class="panel">
+    <label for="photoInput" class="btn btn-photo">Seleccionar foto personal</label>
     <input type="file" id="photoInput" accept="image/*" />
 
-    <input type="text" id="dedicationInput" maxlength="26" placeholder="Escribe tu dedicatoria aquí..." value="Felices Fiestas" />
+    <input
+      type="text"
+      id="dedicationInput"
+      maxlength="26"
+      placeholder="Escribe tu dedicatoria..."
+      value="Felices Fiestas"
+    />
 
-    <div class="btn-row">
-      <button type="button" class="btn-shake" id="shakeBtn">Agitar nieve</button>
-      <button type="button" class="btn-download" id="downloadBtn">Descargar postal</button>
+    <div class="theme-row" role="group" aria-label="Estilo de la base">
+      <button type="button" class="theme-chip active" data-theme="wood">Madera</button>
+      <button type="button" class="theme-chip" data-theme="gold">Dorado</button>
+      <button type="button" class="theme-chip" data-theme="midnight">Medianoche</button>
     </div>
-  </div>
 
-  <script>
-    const canvas = document.getElementById("globeCanvas");
-    const ctx = canvas.getContext("2d");
-    const photoInput = document.getElementById("photoInput");
-    const dedicationInput = document.getElementById("dedicationInput");
-    const shakeBtn = document.getElementById("shakeBtn");
-    const downloadBtn = document.getElementById("downloadBtn");
+    <div class="action-grid">
+      <button type="button" class="btn btn-shake" id="shakeBtn">Agitar nieve</button>
+      <button type="button" class="btn btn-frost" id="frostBtn">Poner escarcha</button>
+      <button type="button" class="btn btn-download" id="downloadBtn">Descargar</button>
+      <button type="button" class="btn btn-share" id="shareBtn">Compartir</button>
+    </div>
 
-    const W = canvas.width;
-    const H = canvas.height;
-    const centerX = W / 2;
-    const centerY = 320;
-    const radius = 265;
+    <p class="status" id="statusMsg"></p>
+  </section>
 
-    let userImage = null;
-    let shakeEnergy = 0;
+  <footer class="footer-note">
+    Usa únicamente fotos propias o con permiso para compartir con tus familiares.
+  </footer>
 
-    // Crear copos de nieve
-    const flakes = Array.from({ length: 130 }, () => ({
-      x: centerX + (Math.random() - 0.5) * radius * 1.8,
-      y: centerY + (Math.random() - 0.5) * radius * 1.8,
-      r: Math.random() * 4.5 + 2,
-      vy: Math.random() * 1.4 + 0.5,
-      vx: (Math.random() - 0.5) * 0.8,
-      alpha: Math.random() * 0.5 + 0.5
-    }));
-
-    // Cargar imagen seleccionada por el usuario
-    photoInput.addEventListener("change", (e) => {
-      const file = e.target.files[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        const img = new Image();
-        img.onload = () => {
-          userImage = img;
-          triggerShake();
-        };
-        img.src = event.target.result;
-      };
-      reader.readAsDataURL(file);
-    });
-
-    function triggerShake() {
-      shakeEnergy = 18;
-      flakes.forEach((f) => {
-        f.vx = (Math.random() - 0.5) * 14;
-        f.vy = (Math.random() - 0.7) * 14;
-      });
-    }
-
-    shakeBtn.addEventListener("click", triggerShake);
-    canvas.addEventListener("click", triggerShake);
-
-    // Detectar agitado físico si el dispositivo lo soporta
-    let lastAccel = { x: 0, y: 0, z: 0 };
-    window.addEventListener("devicemotion", (e) => {
-      const acc = e.accelerationIncludingGravity;
-      if (!acc) return;
-      const delta = Math.abs(acc.x - lastAccel.x) + Math.abs(acc.y - lastAccel.y) + Math.abs(acc.z - lastAccel.z);
-      if (delta > 28) {
-        triggerShake();
-      }
-      lastAccel = { x: acc.x, y: acc.y, z: acc.z };
-    });
-
-    // Descargar imagen PNG
-    downloadBtn.addEventListener("click", () => {
-      const link = document.createElement("a");
-      link.download = "mi-esfera-de-nieve.png";
-      link.href = canvas.toDataURL("image/png");
-      link.click();
-    });
-
-    function drawBackground() {
-      const bgGrad = ctx.createRadialGradient(centerX, centerY - 60, 40, centerX, H / 2, 500);
-      bgGrad.addColorStop(0, "#1e3a5f");
-      bgGrad.addColorStop(1, "#090f21");
-      ctx.fillStyle = bgGrad;
-      ctx.fillRect(0, 0, W, H);
-    }
-
-    function drawBase(offsetX) {
-      ctx.save();
-      ctx.translate(offsetX, 0);
-
-      // Sombra bajo la base
-      ctx.fillStyle = "rgba(0, 0, 0, 0.45)";
-      ctx.beginPath();
-      ctx.ellipse(centerX, 685, 195, 26, 0, 0, Math.PI * 2);
-      ctx.fill();
-
-      // Cuerpo de la base
-      const baseGrad = ctx.createLinearGradient(centerX - 180, 540, centerX + 180, 680);
-      baseGrad.addColorStop(0, "#5c2d16");
-      baseGrad.addColorStop(0.5, "#8b4513");
-      baseGrad.addColorStop(1, "#3e1d0d");
-
-      ctx.fillStyle = baseGrad;
-      ctx.beginPath();
-      ctx.moveTo(centerX - 145, 545);
-      ctx.lineTo(centerX + 145, 545);
-      ctx.lineTo(centerX + 185, 665);
-      ctx.quadraticCurveTo(centerX, 690, centerX - 185, 665);
-      ctx.closePath();
-      ctx.fill();
-
-      // Aro dorado superior
-      ctx.fillStyle = "#d4af37";
-      ctx.fillRect(centerX - 150, 540, 300, 14);
-
-      // Placa de dedicatoria
-      ctx.fillStyle = "#f5d77f";
-      ctx.beginPath();
-      ctx.roundRect(centerX - 125, 582, 250, 54, 10);
-      ctx.fill();
-      ctx.strokeStyle = "#9a7b2c";
-      ctx.lineWidth = 3;
-      ctx.stroke();
-
-      // Texto de dedicatoria
-      const text = dedicationInput.value.trim() || "Felices Fiestas";
-      ctx.fillStyle = "#3b230a";
-      ctx.font = "bold 24px Georgia, serif";
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-      ctx.fillText(text, centerX, 609);
-
-      ctx.restore();
-    }
-
-    function drawGlobe(offsetX) {
-      ctx.save();
-      ctx.translate(offsetX, 0);
-
-      // Recorte circular para todo lo que va dentro de la esfera
-      ctx.beginPath();
-      ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
-      ctx.clip();
-
-      // Fondo interior
-      const innerGrad = ctx.createRadialGradient(centerX, centerY - 50, 20, centerX, centerY, radius);
-      innerGrad.addColorStop(0, "#2b5876");
-      innerGrad.addColorStop(1, "#0f2027");
-      ctx.fillStyle = innerGrad;
-      ctx.fillRect(centerX - radius, centerY - radius, radius * 2, radius * 2);
-
-      // Dibujar foto del usuario centrada y ajustada (cover)
-      if (userImage) {
-        const imgRatio = userImage.width / userImage.height;
-        const boxSize = radius * 2;
-        let drawW = boxSize;
-        let drawH = boxSize;
-        if (imgRatio > 1) {
-          drawW = boxSize * imgRatio;
-        } else {
-          drawH = boxSize / imgRatio;
-        }
-        ctx.drawImage(
-          userImage,
-          centerX - drawW / 2,
-          centerY - drawH / 2,
-          drawW,
-          drawH
-        );
-      } else {
-        // Mensaje guía si aún no hay foto
-        ctx.fillStyle = "rgba(255, 255, 255, 0.85)";
-        ctx.font = "600 24px system-ui, sans-serif";
-        ctx.textAlign = "center";
-        ctx.fillText("Toca 'Seleccionar foto'", centerX, centerY - 12);
-        ctx.font = "18px system-ui, sans-serif";
-        ctx.fillStyle = "rgba(226, 232, 240, 0.8)";
-        ctx.fillText("para colocar tu imagen aquí", centerX, centerY + 22);
-      }
-
-      // Base nevada interna
-      ctx.fillStyle = "#f8fafc";
-      ctx.beginPath();
-      ctx.ellipse(centerX, centerY + radius - 18, radius * 0.85, 55, 0, 0, Math.PI * 2);
-      ctx.fill();
-
-      // Actualizar y dibujar copos de nieve
-      flakes.forEach((f) => {
-        f.x += f.vx;
-        f.y += f.vy;
-
-        // Desacelerar el impulso del agitado poco a poco
-        f.vx *= 0.97;
-        if (f.vy > 1.6) {
-          f.vy *= 0.96;
-        } else {
-          f.vy = Math.min(f.vy + 0.04, 1.6);
-        }
-
-        // Mantener dentro del círculo
-        const dx = f.x - centerX;
-        const dy = f.y - centerY;
-        const dist = Math.sqrt(dx * dx + dy * dy);
-
-        if (dist > radius - 10) {
-          const angle = Math.atan2(dy, dx);
-          f.x = centerX + Math.cos(angle) * (radius - 12);
-          f.y = centerY + Math.sin(angle) * (radius - 12);
-          f.vx *= -0.5;
-        }
-
-        // Si llega al suelo nevado, reaparece arriba
-        if (f.y > centerY + radius - 45) {
-          f.y = centerY - radius + 20 + Math.random() * 40;
-          f.x = centerX + (Math.random() - 0.5) * radius * 1.4;
-        }
-
-        ctx.fillStyle = `rgba(255, 255, 255, ${f.alpha})`;
-        ctx.beginPath();
-        ctx.arc(f.x, f.y, f.r, 0, Math.PI * 2);
-        ctx.fill();
-      });
-
-      // Brillo de cristal (reflejo superior izquierdo)
-      const gloss = ctx.createRadialGradient(
-        centerX - 95,
-        centerY - 105,
-        10,
-        centerX - 80,
-        centerY - 90,
-        150
-      );
-      gloss.addColorStop(0, "rgba(255, 255, 255, 0.42)");
-      gloss.addColorStop(1, "rgba(255, 255, 255, 0)");
-      ctx.fillStyle = gloss;
-      ctx.beginPath();
-      ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
-      ctx.fill();
-
-      ctx.restore();
-
-      // Borde exterior de la esfera
-      ctx.save();
-      ctx.translate(offsetX, 0);
-      ctx.strokeStyle = "rgba(255, 255, 255, 0.35)";
-      ctx.lineWidth = 5;
-      ctx.beginPath();
-      ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
-      ctx.stroke();
-      ctx.restore();
-    }
-
-    function animate() {
-      let offsetX = 0;
-      if (shakeEnergy > 0.2) {
-        offsetX = Math.sin(shakeEnergy * 2.5) * shakeEnergy * 0.7;
-        shakeEnergy *= 0.9;
-      } else {
-        shakeEnergy = 0;
-      }
-
-      drawBackground();
-      drawGlobe(offsetX);
-      drawBase(offsetX);
-
-      requestAnimationFrame(animate);
-    }
-
-    animate();
-  </script>
-</body>
+  <script src="app.js"></script>
+</body
+  >
 </html>
