@@ -10,6 +10,10 @@ let snowVelocity = [];
 let frostProgress = 1.0; 
 let isClearingFrost = false;
 
+// Variables para la animación de ensamblaje
+let isAssembling = false;
+let assemblyProgress = 0;
+
 export function initThree() {
   const container = document.getElementById('canvas-container');
   if (!container) return;
@@ -17,7 +21,6 @@ export function initThree() {
   scene = new THREE.Scene();
   scene.background = null; 
 
-  // Cámara un poco más alejada para que quepan los 3 elementos separados
   camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 1000);
   camera.position.set(0, 0, 26); 
 
@@ -47,7 +50,7 @@ export function initThree() {
   scene.add(dirLight);
 
   // ==========================================
-  // ELEMENTO 1: LA VASIJA (Base inferior)
+  // ELEMENTO 1: LA VASIJA (Soporte)
   // ==========================================
   const baseGeo = new THREE.CylinderGeometry(4.5, 5, 1.5, 64);
   const baseMat = new THREE.MeshStandardMaterial({
@@ -56,11 +59,11 @@ export function initThree() {
     metalness: 0.1
   });
   baseMesh = new THREE.Mesh(baseGeo, baseMat);
-  baseMesh.position.y = -8; // Bien abajo
+  baseMesh.position.y = -8; // Empieza abajo
   scene.add(baseMesh);
 
   // ==========================================
-  // ELEMENTO 2: EL ANILLO DE TEXTO (Flotando en medio)
+  // ELEMENTO 2: EL ANILLO DE TEXTO (Cinta)
   // ==========================================
   textCanvas = document.createElement('canvas');
   textCanvas.width = 2048; 
@@ -69,7 +72,6 @@ export function initThree() {
   textTexture.colorSpace = THREE.SRGBColorSpace;
   textTexture.anisotropy = renderer.capabilities.getMaxAnisotropy();
   
-  // Un anillo fino que simula la cinta
   const textGeo = new THREE.CylinderGeometry(4.8, 4.8, 1, 64, 1, true);
   const textMat = new THREE.MeshStandardMaterial({
     map: textTexture,
@@ -78,7 +80,7 @@ export function initThree() {
     metalness: 0.4 
   });
   textMesh = new THREE.Mesh(textGeo, textMat);
-  textMesh.position.y = -4.5; // Flotando
+  textMesh.position.y = -4.5; // Empieza flotando
   scene.add(textMesh);
 
   document.fonts.ready.then(() => {
@@ -86,9 +88,8 @@ export function initThree() {
   });
 
   // ==========================================
-  // ELEMENTO 3: LA ESFERA (Cristal, Foto, Nieve)
+  // ELEMENTO 3: LA ESFERA
   // ==========================================
-  // 3.1 El Piso de Nieve
   const snowFloorGeo = new THREE.SphereGeometry(4.9, 32, 16, 0, Math.PI * 2, Math.PI / 2, Math.PI / 2);
   const snowFloorMat = new THREE.MeshStandardMaterial({
     color: 0xf8fafc, 
@@ -99,7 +100,6 @@ export function initThree() {
   snowFloor.position.y = 0;
   scene.add(snowFloor);
 
-  // 3.2 La Foto (Carrusel 360 de 4 paneles)
   photoGroup = new THREE.Group();
   const photoGeo = new THREE.PlaneGeometry(3.5, 3.5);
   const photoMat = new THREE.MeshStandardMaterial({ 
@@ -110,19 +110,17 @@ export function initThree() {
     metalness: 0.1
   });
 
-  // Creamos 4 planos mirando en 4 direcciones
   for(let i = 0; i < 4; i++) {
     const plane = new THREE.Mesh(photoGeo, photoMat.clone());
     const angle = (i * Math.PI) / 2;
     plane.position.x = Math.sin(angle) * 2.2;
     plane.position.z = Math.cos(angle) * 2.2;
     plane.rotation.y = angle;
-    plane.position.y = 0.5; // Apoyada sobre la nieve
+    plane.position.y = 0.5; 
     photoGroup.add(plane);
   }
   scene.add(photoGroup);
 
-  // 3.3 El Cristal
   const glassGeo = new THREE.SphereGeometry(5, 64, 64);
   const glassMat = new THREE.MeshPhysicalMaterial({
     color: 0xffffff,
@@ -137,7 +135,6 @@ export function initThree() {
   globeGlass.position.y = 0;
   scene.add(globeGlass);
 
-  // 3.4 La Nieve 3D
   const snowGeo = new THREE.BufferGeometry();
   const snowCount = 300; 
   const positions = new Float32Array(snowCount * 3);
@@ -167,7 +164,7 @@ export function initThree() {
     depthWrite: false 
   });
   snowParticles = new THREE.Points(snowGeo, snowMat);
-  snowParticles.renderOrder = 999; // ¡Hace que la nieve se dibuje ENCIMA de la foto!
+  snowParticles.renderOrder = 999; 
   scene.add(snowParticles);
 
   animate();
@@ -180,7 +177,6 @@ export function updateBaseText(text, themeName = "wood") {
   const ctx = textCanvas.getContext('2d');
   const theme = THEMES[themeName];
   
-  // Pintamos todo el anillo
   if (themeName === 'midnight') {
     ctx.fillStyle = '#f8fafc'; 
     ctx.fillRect(0, 0, textCanvas.width, textCanvas.height);
@@ -199,7 +195,6 @@ export function updateBaseText(text, themeName = "wood") {
     ctx.fillStyle = theme.text; 
   }
   
-  // Bordes superior e inferior del anillo
   ctx.fillStyle = 'rgba(0,0,0,0.3)';
   ctx.fillRect(0, 0, textCanvas.width, 10);
   ctx.fillRect(0, textCanvas.height - 10, textCanvas.width, 10);
@@ -230,7 +225,6 @@ export function updatePhoto(img) {
   texture.colorSpace = THREE.SRGBColorSpace;
   texture.needsUpdate = true;
   
-  // Aplicamos la misma textura a los 4 paneles del carrusel
   photoGroup.children.forEach(plane => {
     plane.material.map = texture;
     plane.material.needsUpdate = true;
@@ -239,12 +233,53 @@ export function updatePhoto(img) {
   addFrost3D(); 
 }
 
-export function updateBaseTheme(themeName) {
-  const theme = THEMES[themeName];
-  if (theme && baseMesh) {
-    baseMesh.material.color.set(theme.stops[1]); 
-    updateBaseText(state.lastText || "Feliz Navidad", themeName);
+// --- NUEVAS FUNCIONES PARA CAMBIAR MODELOS ---
+
+export function updateBaseModel(baseType) {
+  if (!baseMesh) return;
+  
+  if (baseType === 'wood') {
+    baseMesh.material.color.set('#8b4513');
+    baseMesh.material.roughness = 0.6;
+    baseMesh.material.metalness = 0.1;
+  } else if (baseType === 'marble') {
+    baseMesh.material.color.set('#f8fafc'); // Blanco mármol
+    baseMesh.material.roughness = 0.2;
+    baseMesh.material.metalness = 0.0;
+  } else if (baseType === 'gold') {
+    baseMesh.material.color.set('#d4af37'); // Dorado
+    baseMesh.material.roughness = 0.1;
+    baseMesh.material.metalness = 0.8;
   }
+  baseMesh.material.needsUpdate = true;
+}
+
+export function updateRibbonModel(ribbonType) {
+  if (!textMesh) return;
+  
+  if (ribbonType === 'gold') {
+    // El oro ya está en la textura del canvas, solo ajustamos material
+    textMesh.material.metalness = 0.6;
+    textMesh.material.roughness = 0.1;
+  } else if (ribbonType === 'black') {
+    // Si eligen cinta negra, cambiamos el material a negro
+    textMesh.material.map = null; 
+    textMesh.material.color.set('#0f172a');
+    textMesh.material.metalness = 0.2;
+    textMesh.material.roughness = 0.5;
+  } else if (ribbonType === 'white') {
+    textMesh.material.map = null;
+    textMesh.material.color.set('#ffffff');
+    textMesh.material.metalness = 0.1;
+    textMesh.material.roughness = 0.4;
+  }
+  textMesh.material.needsUpdate = true;
+}
+
+// --- FUNCIÓN DE ENSAMBLAJE ---
+export function assembleGlobe() {
+  isAssembling = true;
+  assemblyProgress = 0;
 }
 
 export function shake3DSnow() {
@@ -280,6 +315,18 @@ function animate() {
   requestAnimationFrame(animate);
   controls.update();
 
+  // --- ANIMACIÓN DE ENSAMBLAJE ---
+  if (isAssembling && assemblyProgress < 1) {
+    assemblyProgress += 0.02; // Velocidad de acople
+    if (assemblyProgress > 1) assemblyProgress = 1;
+    
+    // La vasija sube de -8 a -5.5 (donde toca la esfera)
+    baseMesh.position.y = THREE.MathUtils.lerp(-8, -5.5, assemblyProgress);
+    
+    // El anillo sube de -4.5 a -5.0 (para que quede entre la esfera y la vasija)
+    textMesh.position.y = THREE.MathUtils.lerp(-4.5, -5.0, assemblyProgress);
+  }
+
   if (snowParticles) {
     const positions = snowParticles.geometry.attributes.position.array;
     for (let i = 0; i < positions.length / 3; i++) {
@@ -310,4 +357,4 @@ function animate() {
   }
 
   renderer.render(scene, camera);
-}
+                             }
