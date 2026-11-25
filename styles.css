@@ -1,0 +1,192 @@
+:root {
+  --bg-top: #1b2a4a;
+  --bg-bottom: #080d1a;
+  --surface: rgba(255, 255, 255, 0.08);
+  --border: rgba(255, 255, 255, 0.15);
+  --text-main: #f8fafc;
+  --text-muted: #cbd5e1;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+body {
+  min-height: 100vh;
+  background: radial-gradient(circle at 50% 10%, var(--bg-top) 0%, var(--bg-bottom) 100%);
+  color: var(--text-main);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px 14px;
+  gap: 16px;
+}
+
+.header {
+  text-align: center;
+  max-width: 380px;
+}
+
+.header h1 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.header p {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  line-height: 1.35;
+}
+
+.stage {
+  width: 320px;
+  height: 390px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+canvas {
+  width: 320px;
+  height: 390px;
+  border-radius: 22px;
+  cursor: grab;
+  touch-action: none;
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.5);
+}
+
+canvas:active {
+  cursor: grabbing;
+}
+
+.panel {
+  width: 100%;
+  max-width: 340px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  backdrop-filter: blur(8px);
+}
+
+input[type="file"] {
+  display: none;
+}
+
+input[type="text"] {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  background: rgba(15, 23, 42, 0.72);
+  color: #ffffff;
+  font-size: 0.92rem;
+  text-align: center;
+  outline: none;
+}
+
+input[type="text"]:focus {
+  border-color: #38bdf8;
+}
+
+input[type="text"]::placeholder {
+  color: #94a3b8;
+}
+
+.theme-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+}
+
+.theme-chip {
+  padding: 8px 6px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(15, 23, 42, 0.5);
+  color: #e2e8f0;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.theme-chip.active {
+  background: #f8fafc;
+  color: #0f172a;
+  border-color: #ffffff;
+}
+
+.action-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.btn {
+  width: 100%;
+  padding: 11px 12px;
+  border-radius: 12px;
+  border: none;
+  font-size: 0.9rem;
+  font-weight: 700;
+  text-align: center;
+  cursor: pointer;
+  transition: transform 0.14s ease, filter 0.14s ease;
+}
+
+.btn:hover {
+  filter: brightness(1.04);
+}
+
+.btn:active {
+  transform: scale(0.97);
+}
+
+.btn-photo {
+  display: block;
+  background: #e2e8f0;
+  color: #0f172a;
+}
+
+.btn-shake {
+  background: #38bdf8;
+  color: #082f49;
+}
+
+.btn-frost {
+  background: #bae6fd;
+  color: #0c4a6e;
+}
+
+.btn-download {
+  background: #facc15;
+  color: #422006;
+}
+
+.btn-share {
+  background: #4ade80;
+  color: #052e16;
+}
+
+.status {
+  min-height: 18px;
+  font-size: 0.8rem;
+  color: #93c5fd;
+  text-align: center;
+}
+
+.footer-note {
+  max-width: 340px;
+  font-size: 0.75rem;
+  color: #94a3b8;
+  text-align: center;
+}
