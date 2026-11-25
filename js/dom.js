@@ -1,5 +1,5 @@
 /* ==========================================================================
-   REFERENCIAS AL DOM (VERSIÓN 3D)
+   REFERENCIAS AL DOM (VERSIÓN 3D CON PERSONALIZACIÓN)
    ========================================================================== */
 
 // Elementos de la interfaz de usuario
@@ -10,7 +10,11 @@ export const frostBtn = document.getElementById("frostBtn");
 export const videoBtn = document.getElementById("videoBtn");
 export const shareBtn = document.getElementById("shareBtn");
 export const statusMsg = document.getElementById("statusMsg");
-export const themeChips = document.querySelectorAll(".theme-chip");
+
+// Selectores para las nuevas opciones (Cintas y Soportes)
+export const ribbonChips = document.querySelectorAll(".ribbon-chip");
+export const baseChips = document.querySelectorAll(".base-chip");
+export const assembleBtn = document.getElementById("assembleBtn"); // El botón de "Armar"
 
 // Elemento para el "Modo Suite" (Tocar 5 veces)
 export const mainTitle = document.getElementById("mainTitle");
