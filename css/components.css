@@ -4,7 +4,7 @@
 .panel {
   width: 100%;
   max-width: 360px;
-  background: var(--surface);
+  background: var(--surface); /* Ahora es blanco translúcido */
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   padding: 16px;
@@ -13,7 +13,7 @@
   gap: 12px;
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1); /* Sombra más suave */
   z-index: 10;
 }
 
@@ -22,26 +22,27 @@ input[type="file"] {
   display: none;
 }
 
-/* Inputs de texto */
+/* Inputs de texto (Dedicatoria) */
 input[type="text"] {
   width: 100%;
   min-height: 44px;
   padding: 10px 14px;
   border-radius: var(--radius-md);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  background: rgba(2, 6, 23, 0.5);
-  color: var(--text-light);
-  font-size: 1.1rem;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  background: rgba(255, 255, 255, 0.8); /* Fondo clarito */
+  color: #0f172a; /* Texto oscuro para leer sobre blanco */
+  font-size: 1.2rem;
   text-align: center;
   outline: none;
-  transition: border-color 0.2s;
-  font-family: 'Mountains of Christmas', cursive, sans-serif; /* Fuente navideña */
+  transition: border-color 0.2s, box-shadow 0.2s;
+  font-family: 'Mountains of Christmas', cursive, sans-serif; 
   font-weight: 700;
   letter-spacing: 1px;
 }
 
 input[type="text"]:focus {
   border-color: #eab308; /* Dorado al enfocar */
+  box-shadow: 0 0 8px rgba(234, 179, 8, 0.3);
 }
 
 input[type="text"]::placeholder {
@@ -62,9 +63,9 @@ input[type="text"]::placeholder {
   min-height: 38px;
   padding: 8px;
   border-radius: var(--radius-sm);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(255, 255, 255, 0.05);
-  color: #cbd5e1;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  background: rgba(0, 0, 0, 0.05); /* Fondo gris muy claro */
+  color: #334155; /* Texto gris oscuro */
   font-size: 0.85rem;
   font-weight: 600;
   cursor: pointer;
@@ -73,8 +74,8 @@ input[type="text"]::placeholder {
 
 .theme-chip.active {
   background: #eab308; /* Dorado */
-  color: #0f172a;
-  border-color: #eab308;
+  color: #422006; /* Texto marrón oscuro */
+  border-color: #ca8a04;
   box-shadow: 0 0 10px rgba(234, 179, 8, 0.4);
 }
 
@@ -93,7 +94,7 @@ input[type="text"]::placeholder {
   border-radius: var(--radius-md);
   border: none;
   font-family: 'Mountains of Christmas', cursive, sans-serif;
-  font-size: 1.2rem; /* Letra un poco más grande por la fuente */
+  font-size: 1.2rem; 
   font-weight: 700;
   text-align: center;
   cursor: pointer;
@@ -101,7 +102,7 @@ input[type="text"]::placeholder {
   display: flex;
   align-items: center;
   justify-content: center;
-  text-shadow: 0px 1px 2px rgba(0,0,0,0.3); /* Le da un poco de volumen al texto */
+  text-shadow: 0px 1px 2px rgba(0,0,0,0.3); 
   letter-spacing: 0.5px;
 }
 
@@ -128,7 +129,7 @@ input[type="text"]::placeholder {
 .btn-shake {
   background: linear-gradient(145deg, #fde047, #ca8a04);
   color: #422006;
-  text-shadow: none; /* El dorado se ve mejor sin sombra oscura */
+  text-shadow: none; 
 }
 
 /* 3. Limpiar escarcha: Azul Hielo */
@@ -154,9 +155,9 @@ input[type="text"]::placeholder {
 .status {
   min-height: 20px;
   font-size: 0.85rem;
-  color: #94a3b8;
+  color: #475569; /* Gris oscuro para leer sobre blanco */
   text-align: center;
-  font-weight: 500;
+  font-weight: 600;
 }
 
 /* ==========================================================================
@@ -181,7 +182,7 @@ input[type="text"]::placeholder {
 .modal-card {
   width: 100%;
   max-width: 360px;
-  background: #0f172a;
+  background: #0f172a; /* El modal se mantiene oscuro para resaltar */
   border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 20px;
   padding: 24px;
@@ -193,7 +194,7 @@ input[type="text"]::placeholder {
 }
 
 .modal-card h2 {
-  font-size: 1.6rem;
+  font-size: 1.8rem;
   color: #f8fafc;
   font-family: 'Mountains of Christmas', cursive, sans-serif;
 }
@@ -231,7 +232,7 @@ input[type="text"]::placeholder {
    ========================================================================== */
 @media (min-width: 600px) {
   .panel { max-width: 420px; padding: 20px; gap: 14px; }
-  .btn { font-size: 1.4rem; min-height: 48px; } /* Letra más grande en tablet */
+  .btn { font-size: 1.4rem; min-height: 48px; } 
   .theme-chip { font-size: 0.9rem; min-height: 42px; }
 }
 
@@ -241,5 +242,5 @@ input[type="text"]::placeholder {
     filter: brightness(1.1); 
     box-shadow: 0 4px 12px rgba(0,0,0,0.2);
   }
-  .theme-chip:hover { background: rgba(255,255,255,0.15); }
+  .theme-chip:hover { background: rgba(0,0,0,0.1); }
 }
