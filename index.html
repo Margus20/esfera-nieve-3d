@@ -3,19 +3,31 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Esfera de Nieve Interactiva</title>
+  <title>Esfera de Nieve 3D</title>
   <link rel="stylesheet" href="styles.css" />
+  
+  <!-- IMPORT MAPS PARA THREE.JS (3D) -->
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+        "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+      }
+    }
+  </script>
 </head>
 <body>
 
   <header class="header">
-    <h1>Esfera de Nieve Interactiva</h1>
-    <p>Sube una foto, limpia la escarcha con el dedo, agita la nieve y descarga tu clip de video.</p>
+    <!-- Toca este título 5 veces rápido para activar tu Modo Suite (Gratis) -->
+    <h1 id="mainTitle">Esfera de Nieve</h1>
+    <p>Sube una foto, gira la esfera y comparte un recuerdo.</p>
   </header>
 
   <main class="stage">
-    <!-- Asegúrate de mantener el width y height, el JS los usa para calcular el centro -->
-    <canvas id="globeCanvas" width="640" height="780"></canvas>
+    <!-- Contenedor para el motor 3D (Three.js inyectará el canvas aquí) -->
+    <div id="canvas-container" style="width: 100%; height: 60vh; min-height: 400px; position: relative; touch-action: none;">
+    </div>
   </main>
 
   <section class="panel">
@@ -27,7 +39,7 @@
       id="dedicationInput"
       maxlength="26"
       placeholder="Escribe tu dedicatoria..."
-      value="Felices Fiestas"
+      value="Feliz Navidad"
     />
 
     <div class="theme-row" role="group" aria-label="Estilo de la base">
@@ -46,12 +58,12 @@
     <p class="status" id="statusMsg"></p>
   </section>
 
-  <!-- Modal de confirmación de $1 por generación -->
+  <!-- Modal de confirmación de $1 por generación (Se mantiene para la simulación) -->
   <div class="modal-backdrop" id="payModal" aria-hidden="true">
     <div class="modal-card">
       <h2>Generar clip de video</h2>
       <p>Cada generación de video tiene un costo de <strong>$1.00</strong>.</p>
-      <p class="modal-note">Modo de prueba en front-end: confirma para simular el pago y grabar 4 segundos de animación.</p>
+      <p class="modal-note">Modo de prueba: confirma para simular el pago y grabar 4 segundos de animación 3D.</p>
       <div class="modal-actions">
         <button type="button" class="btn btn-cancel" id="cancelPayBtn">Cancelar</button>
         <button type="button" class="btn btn-confirm" id="confirmPayBtn">Pagar $1 y grabar</button>
@@ -63,7 +75,7 @@
     Usa únicamente fotos propias o con permiso para compartir con tus familiares.
   </footer>
 
-  <!-- ESTA ES LA LÍNEA QUE SE MODIFICÓ: ahora apunta a la carpeta js y usa type="module" -->
+  <!-- Cargamos el archivo principal que orquestará todo -->
   <script type="module" src="js/main.js"></script>
 
 </body>
