@@ -1,7 +1,7 @@
 import * as dom from './dom.js';
 import { state, GENERATION_PRICE_USD, VIDEO_DURATION_MS } from './state.js';
-// Mantenemos assembleGlobe en las importaciones
-import { initThree, updatePhoto, updateBaseText, updateBaseTheme, shake3DSnow, getRendererCanvas, clearFrost3D, addFrost3D, assembleGlobe } from './three-scene.js';
+// Importamos las nuevas funciones del motor 3D
+import { initThree, updatePhoto, updateBaseText, updateBaseModel, updateRibbonModel, shake3DSnow, getRendererCanvas, clearFrost3D, addFrost3D, assembleGlobe } from './three-scene.js';
 import { iniciarProcesoVideo } from './payment.js';
 
 /* ==========================================================================
@@ -24,9 +24,6 @@ dom.photoInput.addEventListener("change", (e) => {
       state.userImage = img;
       updatePhoto(img); // Manda la foto a Three.js
       
-      // ¡CAMBIO AQUÍ! Ya no ensamblamos automáticamente.
-      // En su lugar, le pedimos al usuario que termine de personalizar.
-      
       shake3DSnow();    // Agita la nieve al poner la foto
       dom.setStatus("Foto cargada. Personaliza y pulsa 'Armar Esfera'.");
     };
@@ -39,22 +36,37 @@ dom.photoInput.addEventListener("change", (e) => {
 dom.dedicationInput.addEventListener("input", (e) => {
   const text = e.target.value.trim() || "Feliz Navidad";
   state.lastText = text; 
-  updateBaseText(text, state.currentTheme); 
+  // Pasamos 'gold' por defecto para que el texto se vea bonito
+  updateBaseText(text, "gold"); 
 });
 
-// Cambiar tema de la base (Madera, Oro, Medianoche)
-dom.themeChips.forEach((chip) => {
+/* ==========================================================================
+   3. PERSONALIZACIÓN: CINTAS Y SOPORTES
+   ========================================================================== */
+// Selección de Cinta
+dom.ribbonChips.forEach((chip) => {
   chip.addEventListener("click", () => {
-    dom.themeChips.forEach((c) => c.classList.remove("active"));
+    dom.ribbonChips.forEach((c) => c.classList.remove("active"));
     chip.classList.add("active");
-    state.currentTheme = chip.dataset.theme;
-    updateBaseTheme(chip.dataset.theme); 
-    dom.setStatus(`Base cambiada a ${chip.textContent.toLowerCase()}.`);
+    state.currentRibbon = chip.dataset.ribbon;
+    updateRibbonModel(chip.dataset.ribbon); 
+    dom.setStatus(`Cinta cambiada a ${chip.textContent.toLowerCase()}.`);
+  });
+});
+
+// Selección de Soporte
+dom.baseChips.forEach((chip) => {
+  chip.addEventListener("click", () => {
+    dom.baseChips.forEach((c) => c.classList.remove("active"));
+    chip.classList.add("active");
+    state.currentBase = chip.dataset.base;
+    updateBaseModel(chip.dataset.base); 
+    dom.setStatus(`Soporte cambiado a ${chip.textContent.toLowerCase()}.`);
   });
 });
 
 /* ==========================================================================
-   3. ACCIONES 3D (AGITAR, LIMPIAR ESCARCHA Y SENSOR)
+   4. ACCIONES 3D (AGITAR, LIMPIAR ESCARCHA Y SENSOR)
    ========================================================================== */
 // Botón Agitar: Mueve la nieve y vuelve a empañar el cristal
 dom.shakeBtn.addEventListener("click", () => {
@@ -84,7 +96,25 @@ window.addEventListener("devicemotion", (e) => {
 });
 
 /* ==========================================================================
-   4. COMPARTIR IMAGEN (CAPTURA 3D)
+   5. BOTÓN ENSAMBLAR ESFERA (Magia Final)
+   ========================================================================== */
+if (dom.assembleBtn) {
+  dom.assembleBtn.addEventListener("click", () => {
+    assembleGlobe(); 
+    dom.setStatus("¡Esfera ensamblada! Ya puedes agitarla y quitarle la escarcha.");
+    
+    // Ocultamos el botón y los selectores para que ya no se puedan cambiar
+    dom.assembleBtn.style.display = 'none';
+    dom.ribbonChips.forEach(c => c.style.display = 'none');
+    dom.baseChips.forEach(c => c.style.display = 'none');
+    
+    // Desenfocamos el input para que se vea mejor la esfera
+    dom.dedicationInput.blur();
+  });
+}
+
+/* ==========================================================================
+   6. COMPARTIR IMAGEN (CAPTURA 3D)
    ========================================================================== */
 dom.shareBtn.addEventListener("click", async () => {
   try {
@@ -115,7 +145,7 @@ dom.shareBtn.addEventListener("click", async () => {
 });
 
 /* ==========================================================================
-   5. GRABACIÓN DE VIDEO Y PAGOS
+   7. GRABACIÓN DE VIDEO Y PAGOS
    ========================================================================== */
 function getSupportedMimeType() {
   if (typeof MediaRecorder === "undefined" || !MediaRecorder.isTypeSupported) return "";
@@ -172,17 +202,3 @@ dom.videoBtn.addEventListener("click", () => {
   if (state.isRecording) return;
   iniciarProcesoVideo(recordAndDownloadVideo); 
 });
-
-/* ==========================================================================
-   6. NUEVO: BOTÓN PARA ENSAMBLAR LA ESFERA (Se conectará con el HTML)
-   ========================================================================== */
-// Verificamos si el botón existe en el DOM para que no dé error mientras lo creamos
-if (dom.assembleBtn) {
-  dom.assembleBtn.addEventListener("click", () => {
-    assembleGlobe(); // Llama a la animación en three-scene.js
-    dom.setStatus("¡Esfera ensamblada! Ya puedes agitarla y quitarle la escarcha.");
-    
-    // Opcional: Ocultar el botón después de armar
-    dom.assembleBtn.style.display = 'none';
-  });
-}
