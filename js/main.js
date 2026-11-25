@@ -1,6 +1,7 @@
 import * as dom from './dom.js';
 import { state, GENERATION_PRICE_USD, VIDEO_DURATION_MS } from './state.js';
-import { initThree, updatePhoto, updateBaseText, updateBaseTheme, shake3DSnow, getRendererCanvas, clearFrost3D, addFrost3D } from './three-scene.js';
+// Mantenemos assembleGlobe en las importaciones
+import { initThree, updatePhoto, updateBaseText, updateBaseTheme, shake3DSnow, getRendererCanvas, clearFrost3D, addFrost3D, assembleGlobe } from './three-scene.js';
 import { iniciarProcesoVideo } from './payment.js';
 
 /* ==========================================================================
@@ -21,9 +22,13 @@ dom.photoInput.addEventListener("change", (e) => {
     const img = new Image();
     img.onload = () => {
       state.userImage = img;
-      updatePhoto(img); // Manda la foto a Three.js (esto ya empaña el cristal automáticamente)
+      updatePhoto(img); // Manda la foto a Three.js
+      
+      // ¡CAMBIO AQUÍ! Ya no ensamblamos automáticamente.
+      // En su lugar, le pedimos al usuario que termine de personalizar.
+      
       shake3DSnow();    // Agita la nieve al poner la foto
-      dom.setStatus("Foto cargada. Pulsa 'Limpiar escarcha' para verla.");
+      dom.setStatus("Foto cargada. Personaliza y pulsa 'Armar Esfera'.");
     };
     img.src = event.target.result;
   };
@@ -33,8 +38,6 @@ dom.photoInput.addEventListener("change", (e) => {
 // Actualizar texto de la base en tiempo real
 dom.dedicationInput.addEventListener("input", (e) => {
   const text = e.target.value.trim() || "Feliz Navidad";
-  
-  // ¡AQUÍ ESTÁ LA CORRECCIÓN! Guardamos el texto y le pasamos el tema actual
   state.lastText = text; 
   updateBaseText(text, state.currentTheme); 
 });
@@ -45,7 +48,7 @@ dom.themeChips.forEach((chip) => {
     dom.themeChips.forEach((c) => c.classList.remove("active"));
     chip.classList.add("active");
     state.currentTheme = chip.dataset.theme;
-    updateBaseTheme(chip.dataset.theme); // Cambia el color del cilindro 3D y el texto
+    updateBaseTheme(chip.dataset.theme); 
     dom.setStatus(`Base cambiada a ${chip.textContent.toLowerCase()}.`);
   });
 });
@@ -56,7 +59,7 @@ dom.themeChips.forEach((chip) => {
 // Botón Agitar: Mueve la nieve y vuelve a empañar el cristal
 dom.shakeBtn.addEventListener("click", () => {
   shake3DSnow();
-  addFrost3D(); // Vuelve a poner escarcha
+  addFrost3D(); 
   dom.setStatus("¡Nieve agitada! La escarcha ha vuelto.");
 });
 
@@ -74,7 +77,7 @@ window.addEventListener("devicemotion", (e) => {
   const delta = Math.abs(acc.x - lastAccel.x) + Math.abs(acc.y - lastAccel.y) + Math.abs(acc.z - lastAccel.z);
   if (delta > 28) {
     shake3DSnow();
-    addFrost3D(); // Empaña al agitar físicamente
+    addFrost3D(); 
     dom.setStatus("¡Agitado por movimiento!");
   }
   lastAccel = { x: acc.x, y: acc.y, z: acc.z };
@@ -85,7 +88,6 @@ window.addEventListener("devicemotion", (e) => {
    ========================================================================== */
 dom.shareBtn.addEventListener("click", async () => {
   try {
-    // Obtenemos el canvas real que está dibujando Three.js
     const canvas3D = getRendererCanvas();
     const blob = await new Promise((resolve) => canvas3D.toBlob(resolve, "image/png"));
     
@@ -121,7 +123,6 @@ function getSupportedMimeType() {
   return candidates.find((type) => MediaRecorder.isTypeSupported(type)) || "";
 }
 
-// Esta función es llamada por payment.js si el usuario paga o tiene Modo Suite
 async function recordAndDownloadVideo(durationMs = VIDEO_DURATION_MS) {
   const canvas3D = getRendererCanvas();
 
@@ -130,7 +131,7 @@ async function recordAndDownloadVideo(durationMs = VIDEO_DURATION_MS) {
   }
 
   const mimeType = getSupportedMimeType();
-  const stream = canvas3D.captureStream(30); // 30 FPS
+  const stream = canvas3D.captureStream(30); 
   const recorder = mimeType ? new MediaRecorder(stream, { mimeType }) : new MediaRecorder(stream);
   const chunks = [];
 
@@ -138,7 +139,6 @@ async function recordAndDownloadVideo(durationMs = VIDEO_DURATION_MS) {
   dom.videoBtn.disabled = true;
   dom.setStatus("Grabando clip 3D...");
   
-  // Al grabar, aseguramos que la nieve caiga
   shake3DSnow(); 
 
   recorder.ondataavailable = (event) => {
@@ -168,9 +168,21 @@ async function recordAndDownloadVideo(durationMs = VIDEO_DURATION_MS) {
   }, durationMs);
 }
 
-// Conectamos el botón de video con el sistema de pagos/suite
 dom.videoBtn.addEventListener("click", () => {
   if (state.isRecording) return;
-  // Le pasamos la función de grabar a payment.js para que decida si cobra o no
   iniciarProcesoVideo(recordAndDownloadVideo); 
 });
+
+/* ==========================================================================
+   6. NUEVO: BOTÓN PARA ENSAMBLAR LA ESFERA (Se conectará con el HTML)
+   ========================================================================== */
+// Verificamos si el botón existe en el DOM para que no dé error mientras lo creamos
+if (dom.assembleBtn) {
+  dom.assembleBtn.addEventListener("click", () => {
+    assembleGlobe(); // Llama a la animación en three-scene.js
+    dom.setStatus("¡Esfera ensamblada! Ya puedes agitarla y quitarle la escarcha.");
+    
+    // Opcional: Ocultar el botón después de armar
+    dom.assembleBtn.style.display = 'none';
+  });
+}
