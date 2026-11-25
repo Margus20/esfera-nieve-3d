@@ -31,13 +31,13 @@
 
   <main class="stage">
     <!-- Contenedor para el motor 3D (Three.js inyectará el canvas aquí) -->
-    <!-- Los estilos ahora viven en css/3d-stage.css -->
     <div id="canvas-container"></div>
   </main>
 
   <section class="panel">
-    <label for="photoInput" class="btn btn-photo">Seleccionar foto personal</label>
-    <input type="file" id="photoInput" accept="image/*" />
+    <!-- Añadido aria-label para accesibilidad -->
+    <label for="photoInput" class="btn btn-photo" aria-label="Seleccionar una foto personal para la esfera">Seleccionar foto personal</label>
+    <input type="file" id="photoInput" accept="image/*" aria-hidden="true" />
 
     <input
       type="text"
@@ -45,6 +45,7 @@
       maxlength="26"
       placeholder="Escribe tu dedicatoria..."
       value="Feliz Navidad"
+      aria-label="Escribe tu dedicatoria navideña"
     />
 
     <div class="theme-row" role="group" aria-label="Estilo de la base">
@@ -61,7 +62,8 @@
       <button type="button" class="btn btn-share" id="shareBtn">Compartir</button>
     </div>
 
-    <p class="status" id="statusMsg"></p>
+    <!-- aria-live="polite" permite que Voice Access lea los mensajes automáticamente -->
+    <p class="status" id="statusMsg" aria-live="polite"></p>
   </section>
 
   <!-- Modal de confirmación de $1 por generación (Se mantiene para la simulación) -->
