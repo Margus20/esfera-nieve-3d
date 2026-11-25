@@ -4,10 +4,10 @@ import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { state, THEMES } from './state.js';
 
 let scene, camera, renderer, controls;
-let globeGlass, snowParticles, photoPlane, baseMesh, textMesh, textCanvas, textTexture;
+let globeGlass, snowParticles, photoPlane, baseMesh, textMesh, textCanvas, textTexture, snowFloor;
 let snowVelocity = [];
 
-let frostProgress = 1.0; // 1.0 = Empañado, 0.0 = Limpio
+let frostProgress = 1.0; 
 let isClearingFrost = false;
 
 export function initThree() {
@@ -45,7 +45,7 @@ export function initThree() {
   dirLight.position.set(5, 10, 7);
   scene.add(dirLight);
 
-  // 3. La Base (Cilindro principal)
+  // 3. La Base
   const baseGeo = new THREE.CylinderGeometry(5, 5.2, 1.5, 64);
   const baseMat = new THREE.MeshStandardMaterial({
     color: THEMES[state.currentTheme].stops[1],
@@ -56,52 +56,64 @@ export function initThree() {
   baseMesh.position.y = -4.5;
   scene.add(baseMesh);
 
-  // 3.1 LA PLAQUITA FRONTAL (Más delgada y estilizada)
+  // 3.1 LA PLAQUITA FRONTAL
   textCanvas = document.createElement('canvas');
-  // Aumentamos la resolución para que no tenga dientes de sierra
   textCanvas.width = 2048; 
   textCanvas.height = 512;
   textTexture = new THREE.CanvasTexture(textCanvas);
   textTexture.colorSpace = THREE.SRGBColorSpace;
-  textTexture.anisotropy = renderer.capabilities.getMaxAnisotropy(); // Mejora la nitidez
+  textTexture.anisotropy = renderer.capabilities.getMaxAnisotropy();
   
-  // Geometría de cilindro abierto, altura reducida a 0.6 para que sea estilizada
   const textGeo = new THREE.CylinderGeometry(5.05, 5.15, 0.6, 64, 1, true, -Math.PI / 4, Math.PI / 2);
   const textMat = new THREE.MeshStandardMaterial({
     map: textTexture,
     transparent: true,
-    roughness: 0.2, // Más brillante
-    metalness: 0.4  // Efecto metálico/oro
+    roughness: 0.2,
+    metalness: 0.4 
   });
   textMesh = new THREE.Mesh(textGeo, textMat);
   textMesh.position.y = -4.5;
   scene.add(textMesh);
 
-  // Esperar a que la fuente navideña cargue antes de dibujar el texto
   document.fonts.ready.then(() => {
     updateBaseText(state.lastText || "Feliz Navidad", state.currentTheme);
   });
 
-  // 4. La Foto
-  const photoGeo = new THREE.PlaneGeometry(4, 4);
-  const photoMat = new THREE.MeshBasicMaterial({ 
+  // 4. EL SUELO DE NIEVE (Nuevo)
+  // Creamos una media esfera para simular la nieve en el fondo
+  const snowFloorGeo = new THREE.SphereGeometry(4.9, 32, 16, 0, Math.PI * 2, Math.PI / 2, Math.PI / 2);
+  const snowFloorMat = new THREE.MeshStandardMaterial({
+    color: 0xf8fafc, // Blanco nieve
+    roughness: 0.9,
+    metalness: 0.1
+  });
+  snowFloor = new THREE.Mesh(snowFloorGeo, snowFloorMat);
+  snowFloor.position.y = 0;
+  scene.add(snowFloor);
+
+  // 5. LA FOTO CURVADA (Mejorada)
+  // Usamos un cilindro abierto para darle un ligero efecto 3D
+  const photoGeo = new THREE.CylinderGeometry(3, 3, 4, 32, 1, true, -Math.PI/4, Math.PI/2);
+  const photoMat = new THREE.MeshStandardMaterial({ 
     color: 0xffffff,
     transparent: true,
-    opacity: 1,
-    side: THREE.DoubleSide
+    side: THREE.DoubleSide,
+    roughness: 0.4,
+    metalness: 0.1
   });
   photoPlane = new THREE.Mesh(photoGeo, photoMat);
-  photoPlane.position.set(0, 0, 0); 
+  photoPlane.position.set(0, 0.5, 0); // Subimos un poquito la foto para que descanse sobre la nieve
+  photoPlane.rotation.y = -Math.PI / 4; // Orientamos la curvatura hacia la cámara
   scene.add(photoPlane);
 
-  // 5. El Cristal (SOLUCIÓN DEFINITIVA: Usamos opacidad en lugar de transmission)
+  // 6. El Cristal
   const glassGeo = new THREE.SphereGeometry(5, 64, 64);
   const glassMat = new THREE.MeshPhysicalMaterial({
     color: 0xffffff,
     metalness: 0.1,
-    roughness: 0.9,      // Empieza empañado (rugoso)
+    roughness: 0.9,      
     transparent: true,
-    opacity: 0.85,       // Empieza semi-opaco
+    opacity: 0.85,       
     clearcoat: 1.0,
     clearcoatRoughness: 0.8
   });
@@ -109,7 +121,7 @@ export function initThree() {
   globeGlass.position.y = 0;
   scene.add(globeGlass);
 
-  // 6. La Nieve 3D
+  // 7. La Nieve 3D
   const snowGeo = new THREE.BufferGeometry();
   const snowCount = 300; 
   const positions = new Float32Array(snowCount * 3);
@@ -151,38 +163,31 @@ export function updateBaseText(text, themeName = "wood") {
   const ctx = textCanvas.getContext('2d');
   const theme = THEMES[themeName];
   
-  // Fondo de la placa
   if (themeName === 'midnight') {
-    // Efecto Cuarzo/Granito Blanco para Medianoche
     ctx.fillStyle = '#f8fafc'; 
     ctx.fillRect(0, 0, textCanvas.width, textCanvas.height);
-    // Sutiles vetas de granito
     ctx.fillStyle = '#e2e8f0';
     for(let i=0; i<50; i++) {
        ctx.fillRect(Math.random()*textCanvas.width, Math.random()*textCanvas.height, Math.random()*40, 2);
     }
-    ctx.fillStyle = theme.text; // Texto azul oscuro
+    ctx.fillStyle = theme.text; 
   } else {
-    // Efecto Oro Pulido para Madera y Dorado
     const grad = ctx.createLinearGradient(0, 0, 0, textCanvas.height);
     grad.addColorStop(0, '#fdf08a');
     grad.addColorStop(0.5, '#d4af37');
     grad.addColorStop(1, '#b8860b');
     ctx.fillStyle = grad;
     ctx.fillRect(0, 0, textCanvas.width, textCanvas.height);
-    ctx.fillStyle = theme.text; // Texto oscuro
+    ctx.fillStyle = theme.text; 
   }
   
-  // Bordes decorativos
   ctx.fillStyle = 'rgba(0,0,0,0.3)';
   ctx.fillRect(0, 0, textCanvas.width, 10);
   ctx.fillRect(0, textCanvas.height - 10, textCanvas.width, 10);
   
-  // Tipografía Navideña
-  let fontSize = 180; // Letra inicial grande
+  let fontSize = 180; 
   ctx.font = `bold ${fontSize}px 'Mountains of Christmas', cursive, serif`;
   
-  // Auto-escalado
   while (ctx.measureText(text).width > textCanvas.width * 0.85 && fontSize > 40) {
     fontSize -= 10;
     ctx.font = `bold ${fontSize}px 'Mountains of Christmas', cursive, serif`;
@@ -191,7 +196,6 @@ export function updateBaseText(text, themeName = "wood") {
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   
-  // Sombra suave para simular grabado
   ctx.shadowColor = 'rgba(0,0,0,0.4)';
   ctx.shadowBlur = 4;
   ctx.shadowOffsetX = 2;
@@ -199,7 +203,6 @@ export function updateBaseText(text, themeName = "wood") {
   
   ctx.fillText(text, textCanvas.width / 2, textCanvas.height / 2);
   
-  // Resetear sombra
   ctx.shadowColor = 'transparent';
   
   if (textTexture) textTexture.needsUpdate = true;
@@ -238,7 +241,7 @@ export function addFrost3D() {
   isClearingFrost = false;
   if (globeGlass) {
     globeGlass.material.roughness = 0.9;
-    globeGlass.material.opacity = 0.85; // Vuelve a empañarse
+    globeGlass.material.opacity = 0.85; 
     globeGlass.material.clearcoatRoughness = 0.8;
   }
 }
@@ -266,7 +269,8 @@ function animate() {
       positions[i3 + 2] += Math.cos(snowVelocity[i].sway) * 0.005;
       snowVelocity[i].sway += 0.02;
 
-      if (positions[i3 + 1] < -4.5) {
+      // Ajustamos la altura de rebote para que caigan sobre el suelo de nieve (y = -3.5)
+      if (positions[i3 + 1] < -3.5) {
         positions[i3 + 1] = 4.5;
         positions[i3] = (Math.random() - 0.5) * 8;
         positions[i3 + 2] = (Math.random() - 0.5) * 8;
@@ -276,12 +280,10 @@ function animate() {
     snowParticles.geometry.attributes.position.needsUpdate = true;
   }
 
-  // --- ANIMACIÓN DE LIMPIEZA (Usando Opacidad y Rugosidad) ---
   if (isClearingFrost && frostProgress > 0) {
     frostProgress -= 0.02; 
     if (frostProgress < 0) frostProgress = 0;
 
-    // Transición suave: opacity de 0.85 a 0.0, roughness de 0.9 a 0.0
     globeGlass.material.opacity = THREE.MathUtils.lerp(0.0, 0.85, frostProgress);
     globeGlass.material.roughness = THREE.MathUtils.lerp(0.0, 0.9, frostProgress);
     globeGlass.material.clearcoatRoughness = THREE.MathUtils.lerp(0.0, 0.8, frostProgress);
