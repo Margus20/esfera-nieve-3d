@@ -1,0 +1,208 @@
+/* ==========================================================================
+   PANEL DE CONTROLES (MOBILE FIRST)
+   ========================================================================== */
+.panel {
+  width: 100%;
+  max-width: 360px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  z-index: 10;
+}
+
+/* Ocultar input de archivo */
+input[type="file"] {
+  display: none;
+}
+
+/* Inputs de texto */
+input[type="text"] {
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 14px;
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(2, 6, 23, 0.5);
+  color: var(--text-light);
+  font-size: 1rem;
+  text-align: center;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+input[type="text"]:focus {
+  border-color: #38bdf8;
+}
+
+input[type="text"]::placeholder {
+  color: #94a3b8;
+}
+
+/* Fila de Temas (Madera, Oro, Noche) */
+.theme-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.theme-chip {
+  min-height: 38px;
+  padding: 8px;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.05);
+  color: #cbd5e1;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.theme-chip.active {
+  background: var(--text-light);
+  color: #0f172a;
+  border-color: var(--text-light);
+}
+
+/* Cuadrícula de Botones */
+.action-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.btn {
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 12px;
+  border-radius: var(--radius-md);
+  border: none;
+  font-size: 0.9rem;
+  font-weight: 700;
+  text-align: center;
+  cursor: pointer;
+  transition: transform 0.1s ease, filter 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn:active {
+  transform: scale(0.96);
+}
+
+.btn-photo {
+  background: #f8fafc;
+  color: #0f172a;
+}
+.btn-shake {
+  background: #38bdf8;
+  color: #082f49;
+}
+.btn-frost {
+  background: #bae6fd;
+  color: #0c4a6e;
+}
+.btn-video {
+  background: #facc15;
+  color: #422006;
+}
+.btn-share {
+  background: #4ade80;
+  color: #052e16;
+}
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.status {
+  min-height: 20px;
+  font-size: 0.8rem;
+  color: #94a3b8;
+  text-align: center;
+  font-weight: 500;
+}
+
+/* ==========================================================================
+   MODAL DE PAGO ($1)
+   ========================================================================== */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(2, 6, 23, 0.85);
+  backdrop-filter: blur(4px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 100;
+}
+
+.modal-backdrop.open {
+  display: flex;
+}
+
+.modal-card {
+  width: 100%;
+  max-width: 360px;
+  background: #0f172a;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 20px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  text-align: center;
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+}
+
+.modal-card h2 {
+  font-size: 1.3rem;
+  color: #f8fafc;
+}
+.modal-card p {
+  font-size: 0.95rem;
+  color: #cbd5e1;
+  line-height: 1.4;
+}
+.modal-note {
+  font-size: 0.8rem !important;
+  color: #94a3b8 !important;
+}
+.modal-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 10px;
+}
+.btn-cancel {
+  background: rgba(255, 255, 255, 0.1);
+  color: #f8fafc;
+}
+.btn-confirm {
+  background: #4ade80;
+  color: #052e16;
+}
+
+/* ==========================================================================
+   MEDIA QUERIES PARA COMPONENTES
+   ========================================================================== */
+@media (min-width: 600px) {
+  .panel { max-width: 420px; padding: 20px; gap: 14px; }
+  .btn { font-size: 1rem; min-height: 48px; }
+  .theme-chip { font-size: 0.9rem; min-height: 42px; }
+}
+
+@media (min-width: 960px) {
+  .panel { grid-area: panel; max-width: 400px; }
+  .btn:hover { filter: brightness(1.1); }
+  .theme-chip:hover { background: rgba(255,255,255,0.15); }
+}
