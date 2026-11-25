@@ -1,0 +1,58 @@
+/* ==========================================================================
+   ESCENARIO 3D (MOBILE FIRST)
+   ========================================================================== */
+.stage {
+  width: 100%;
+  max-width: 100%; /* Dejamos que ocupe el ancho disponible */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* Damos una altura proporcional para móviles */
+  height: 50vh; 
+  min-height: 350px;
+  max-height: 600px;
+}
+
+/* El contenedor específico que Three.js usará */
+#canvas-container {
+  width: 100%;
+  height: 100%;
+  border-radius: var(--radius-lg);
+  cursor: grab;
+  /* IMPORTANTE: touch-action none evita que la página haga scroll cuando giras la esfera */
+  touch-action: none; 
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+  background: transparent;
+}
+
+#canvas-container:active {
+  cursor: grabbing;
+}
+
+/* El lienzo (canvas) que Three.js inyecta por dentro */
+#canvas-container canvas {
+  width: 100% !important;
+  height: 100% !important;
+  display: block;
+  border-radius: var(--radius-lg);
+}
+
+/* ==========================================================================
+   MEDIA QUERIES PARA EL ESCENARIO
+   ========================================================================== */
+@media (min-width: 600px) {
+  .stage {
+    height: 55vh;
+  }
+}
+
+@media (min-width: 960px) {
+  .stage {
+    grid-area: stage;
+    height: 600px; /* Altura fija para escritorio */
+  }
+  #canvas-container {
+    /* En escritorio mantenemos la sombra pero más difuminada */
+    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.2);
+  }
+}
