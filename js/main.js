@@ -1,6 +1,5 @@
 import * as dom from './dom.js';
 import { state, GENERATION_PRICE_USD, VIDEO_DURATION_MS } from './state.js';
-// Añadimos clearFrost3D y addFrost3D a las importaciones
 import { initThree, updatePhoto, updateBaseText, updateBaseTheme, shake3DSnow, getRendererCanvas, clearFrost3D, addFrost3D } from './three-scene.js';
 import { iniciarProcesoVideo } from './payment.js';
 
@@ -34,7 +33,10 @@ dom.photoInput.addEventListener("change", (e) => {
 // Actualizar texto de la base en tiempo real
 dom.dedicationInput.addEventListener("input", (e) => {
   const text = e.target.value.trim() || "Feliz Navidad";
-  updateBaseText(text); // Actualiza la textura del texto en 3D
+  
+  // ¡AQUÍ ESTÁ LA CORRECCIÓN! Guardamos el texto y le pasamos el tema actual
+  state.lastText = text; 
+  updateBaseText(text, state.currentTheme); 
 });
 
 // Cambiar tema de la base (Madera, Oro, Medianoche)
@@ -43,7 +45,7 @@ dom.themeChips.forEach((chip) => {
     dom.themeChips.forEach((c) => c.classList.remove("active"));
     chip.classList.add("active");
     state.currentTheme = chip.dataset.theme;
-    updateBaseTheme(chip.dataset.theme); // Cambia el color del cilindro 3D
+    updateBaseTheme(chip.dataset.theme); // Cambia el color del cilindro 3D y el texto
     dom.setStatus(`Base cambiada a ${chip.textContent.toLowerCase()}.`);
   });
 });
