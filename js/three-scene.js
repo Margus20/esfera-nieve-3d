@@ -4,7 +4,7 @@ import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { state, THEMES } from './state.js';
 
 let scene, camera, renderer, controls;
-let globeGlass, snowParticles, photoPlane, baseMesh, textMesh, textCanvas, textTexture, snowFloor;
+let globeGlass, snowParticles, photoGroup, baseMesh, textMesh, textCanvas, textTexture, snowFloor;
 let snowVelocity = [];
 
 let frostProgress = 1.0; 
@@ -17,8 +17,9 @@ export function initThree() {
   scene = new THREE.Scene();
   scene.background = null; 
 
+  // Cámara un poco más alejada para que quepan los 3 elementos separados
   camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 1000);
-  camera.position.set(0, 2, 18); 
+  camera.position.set(0, 0, 26); 
 
   renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true });
   renderer.setSize(container.clientWidth, container.clientHeight);
@@ -31,8 +32,8 @@ export function initThree() {
   controls.enableDamping = true; 
   controls.dampingFactor = 0.05;
   controls.enablePan = false; 
-  controls.minDistance = 10;
-  controls.maxDistance = 25;
+  controls.minDistance = 15;
+  controls.maxDistance = 30;
   controls.maxPolarAngle = Math.PI / 2 + 0.2; 
 
   const pmremGenerator = new THREE.PMREMGenerator(renderer);
@@ -45,18 +46,22 @@ export function initThree() {
   dirLight.position.set(5, 10, 7);
   scene.add(dirLight);
 
-  // 3. La Base
-  const baseGeo = new THREE.CylinderGeometry(5, 5.2, 1.5, 64);
+  // ==========================================
+  // ELEMENTO 1: LA VASIJA (Base inferior)
+  // ==========================================
+  const baseGeo = new THREE.CylinderGeometry(4.5, 5, 1.5, 64);
   const baseMat = new THREE.MeshStandardMaterial({
     color: THEMES[state.currentTheme].stops[1],
     roughness: 0.4,
     metalness: 0.1
   });
   baseMesh = new THREE.Mesh(baseGeo, baseMat);
-  baseMesh.position.y = -4.5;
+  baseMesh.position.y = -8; // Bien abajo
   scene.add(baseMesh);
 
-  // 3.1 LA PLAQUITA FRONTAL
+  // ==========================================
+  // ELEMENTO 2: EL ANILLO DE TEXTO (Flotando en medio)
+  // ==========================================
   textCanvas = document.createElement('canvas');
   textCanvas.width = 2048; 
   textCanvas.height = 512;
@@ -64,7 +69,8 @@ export function initThree() {
   textTexture.colorSpace = THREE.SRGBColorSpace;
   textTexture.anisotropy = renderer.capabilities.getMaxAnisotropy();
   
-  const textGeo = new THREE.CylinderGeometry(5.05, 5.15, 0.6, 64, 1, true, -Math.PI / 4, Math.PI / 2);
+  // Un anillo fino que simula la cinta
+  const textGeo = new THREE.CylinderGeometry(4.8, 4.8, 1, 64, 1, true);
   const textMat = new THREE.MeshStandardMaterial({
     map: textTexture,
     transparent: true,
@@ -72,18 +78,20 @@ export function initThree() {
     metalness: 0.4 
   });
   textMesh = new THREE.Mesh(textGeo, textMat);
-  textMesh.position.y = -4.5;
+  textMesh.position.y = -4.5; // Flotando
   scene.add(textMesh);
 
   document.fonts.ready.then(() => {
     updateBaseText(state.lastText || "Feliz Navidad", state.currentTheme);
   });
 
-  // 4. EL SUELO DE NIEVE (Nuevo)
-  // Creamos una media esfera para simular la nieve en el fondo
+  // ==========================================
+  // ELEMENTO 3: LA ESFERA (Cristal, Foto, Nieve)
+  // ==========================================
+  // 3.1 El Piso de Nieve
   const snowFloorGeo = new THREE.SphereGeometry(4.9, 32, 16, 0, Math.PI * 2, Math.PI / 2, Math.PI / 2);
   const snowFloorMat = new THREE.MeshStandardMaterial({
-    color: 0xf8fafc, // Blanco nieve
+    color: 0xf8fafc, 
     roughness: 0.9,
     metalness: 0.1
   });
@@ -91,9 +99,9 @@ export function initThree() {
   snowFloor.position.y = 0;
   scene.add(snowFloor);
 
-  // 5. LA FOTO CURVADA (Mejorada)
-  // Usamos un cilindro abierto para darle un ligero efecto 3D
-  const photoGeo = new THREE.CylinderGeometry(3, 3, 4, 32, 1, true, -Math.PI/4, Math.PI/2);
+  // 3.2 La Foto (Carrusel 360 de 4 paneles)
+  photoGroup = new THREE.Group();
+  const photoGeo = new THREE.PlaneGeometry(3.5, 3.5);
   const photoMat = new THREE.MeshStandardMaterial({ 
     color: 0xffffff,
     transparent: true,
@@ -101,12 +109,20 @@ export function initThree() {
     roughness: 0.4,
     metalness: 0.1
   });
-  photoPlane = new THREE.Mesh(photoGeo, photoMat);
-  photoPlane.position.set(0, 0.5, 0); // Subimos un poquito la foto para que descanse sobre la nieve
-  photoPlane.rotation.y = -Math.PI / 4; // Orientamos la curvatura hacia la cámara
-  scene.add(photoPlane);
 
-  // 6. El Cristal
+  // Creamos 4 planos mirando en 4 direcciones
+  for(let i = 0; i < 4; i++) {
+    const plane = new THREE.Mesh(photoGeo, photoMat.clone());
+    const angle = (i * Math.PI) / 2;
+    plane.position.x = Math.sin(angle) * 2.2;
+    plane.position.z = Math.cos(angle) * 2.2;
+    plane.rotation.y = angle;
+    plane.position.y = 0.5; // Apoyada sobre la nieve
+    photoGroup.add(plane);
+  }
+  scene.add(photoGroup);
+
+  // 3.3 El Cristal
   const glassGeo = new THREE.SphereGeometry(5, 64, 64);
   const glassMat = new THREE.MeshPhysicalMaterial({
     color: 0xffffff,
@@ -121,7 +137,7 @@ export function initThree() {
   globeGlass.position.y = 0;
   scene.add(globeGlass);
 
-  // 7. La Nieve 3D
+  // 3.4 La Nieve 3D
   const snowGeo = new THREE.BufferGeometry();
   const snowCount = 300; 
   const positions = new Float32Array(snowCount * 3);
@@ -151,6 +167,7 @@ export function initThree() {
     depthWrite: false 
   });
   snowParticles = new THREE.Points(snowGeo, snowMat);
+  snowParticles.renderOrder = 999; // ¡Hace que la nieve se dibuje ENCIMA de la foto!
   scene.add(snowParticles);
 
   animate();
@@ -163,6 +180,7 @@ export function updateBaseText(text, themeName = "wood") {
   const ctx = textCanvas.getContext('2d');
   const theme = THEMES[themeName];
   
+  // Pintamos todo el anillo
   if (themeName === 'midnight') {
     ctx.fillStyle = '#f8fafc'; 
     ctx.fillRect(0, 0, textCanvas.width, textCanvas.height);
@@ -181,6 +199,7 @@ export function updateBaseText(text, themeName = "wood") {
     ctx.fillStyle = theme.text; 
   }
   
+  // Bordes superior e inferior del anillo
   ctx.fillStyle = 'rgba(0,0,0,0.3)';
   ctx.fillRect(0, 0, textCanvas.width, 10);
   ctx.fillRect(0, textCanvas.height - 10, textCanvas.width, 10);
@@ -195,14 +214,12 @@ export function updateBaseText(text, themeName = "wood") {
   
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  
   ctx.shadowColor = 'rgba(0,0,0,0.4)';
   ctx.shadowBlur = 4;
   ctx.shadowOffsetX = 2;
   ctx.shadowOffsetY = 2;
   
   ctx.fillText(text, textCanvas.width / 2, textCanvas.height / 2);
-  
   ctx.shadowColor = 'transparent';
   
   if (textTexture) textTexture.needsUpdate = true;
@@ -213,8 +230,11 @@ export function updatePhoto(img) {
   texture.colorSpace = THREE.SRGBColorSpace;
   texture.needsUpdate = true;
   
-  photoPlane.material.map = texture;
-  photoPlane.material.needsUpdate = true;
+  // Aplicamos la misma textura a los 4 paneles del carrusel
+  photoGroup.children.forEach(plane => {
+    plane.material.map = texture;
+    plane.material.needsUpdate = true;
+  });
   
   addFrost3D(); 
 }
@@ -269,7 +289,6 @@ function animate() {
       positions[i3 + 2] += Math.cos(snowVelocity[i].sway) * 0.005;
       snowVelocity[i].sway += 0.02;
 
-      // Ajustamos la altura de rebote para que caigan sobre el suelo de nieve (y = -3.5)
       if (positions[i3 + 1] < -3.5) {
         positions[i3 + 1] = 4.5;
         positions[i3] = (Math.random() - 0.5) * 8;
