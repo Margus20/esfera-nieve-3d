@@ -35,10 +35,11 @@
   </main>
 
   <section class="panel">
-    <!-- Añadido aria-label para accesibilidad -->
+    <!-- Seleccionar Foto -->
     <label for="photoInput" class="btn btn-photo" aria-label="Seleccionar una foto personal para la esfera">Seleccionar foto personal</label>
     <input type="file" id="photoInput" accept="image/*" aria-hidden="true" />
 
+    <!-- Dedicatoria -->
     <input
       type="text"
       id="dedicationInput"
@@ -48,25 +49,36 @@
       aria-label="Escribe tu dedicatoria navideña"
     />
 
-    <div class="theme-row" role="group" aria-label="Estilo de la base">
-      <button type="button" class="theme-chip active" data-theme="wood">Madera</button>
-      <button type="button" class="theme-chip" data-theme="gold">Dorado</button>
-      <button type="button" class="theme-chip" data-theme="midnight">Medianoche</button>
+    <!-- Selector de Cinta -->
+    <div class="theme-row" role="group" aria-label="Estilo de la cinta">
+      <button type="button" class="theme-chip ribbon-chip active" data-ribbon="gold">Cinta Oro</button>
+      <button type="button" class="theme-chip ribbon-chip" data-ribbon="black">Cinta Negra</button>
+      <button type="button" class="theme-chip ribbon-chip" data-ribbon="white">Cinta Blanca</button>
     </div>
 
+    <!-- Selector de Soporte -->
+    <div class="theme-row" role="group" aria-label="Estilo del soporte">
+      <button type="button" class="theme-chip base-chip active" data-base="wood">Soporte Madera</button>
+      <button type="button" class="theme-chip base-chip" data-base="marble">Soporte Mármol</button>
+      <button type="button" class="theme-chip base-chip" data-base="gold">Soporte Oro</button>
+    </div>
+
+    <!-- Botón de Armar Esfera -->
+    <button type="button" class="btn btn-assemble" id="assembleBtn" style="background: linear-gradient(145deg, #fde047, #ca8a04); color: #422006; margin-top: 5px;">Armar Esfera</button>
+
+    <!-- Botones de Acción -->
     <div class="action-grid">
       <button type="button" class="btn btn-shake" id="shakeBtn">Agitar nieve</button>
-      <!-- Botón ajustado para accesibilidad -->
       <button type="button" class="btn btn-frost" id="frostBtn">Limpiar escarcha</button>
       <button type="button" class="btn btn-video" id="videoBtn">Video ($1)</button>
       <button type="button" class="btn btn-share" id="shareBtn">Compartir</button>
     </div>
 
-    <!-- aria-live="polite" permite que Voice Access lea los mensajes automáticamente -->
+    <!-- Mensaje de Estado -->
     <p class="status" id="statusMsg" aria-live="polite"></p>
   </section>
 
-  <!-- Modal de confirmación de $1 por generación (Se mantiene para la simulación) -->
+  <!-- Modal de confirmación de $1 por generación -->
   <div class="modal-backdrop" id="payModal" aria-hidden="true">
     <div class="modal-card">
       <h2>Generar clip de video</h2>
