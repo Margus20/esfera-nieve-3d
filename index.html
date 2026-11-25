@@ -14,6 +14,7 @@
   </header>
 
   <main class="stage">
+    <!-- Asegúrate de mantener el width y height, el JS los usa para calcular el centro -->
     <canvas id="globeCanvas" width="640" height="780"></canvas>
   </main>
 
@@ -62,7 +63,8 @@
     Usa únicamente fotos propias o con permiso para compartir con tus familiares.
   </footer>
 
-  <script src="app.js"></script>
-</bod
-  y>
+  <!-- ESTA ES LA LÍNEA QUE SE MODIFICÓ: ahora apunta a la carpeta js y usa type="module" -->
+  <script type="module" src="js/main.js"></script>
+
+</body>
 </html>
