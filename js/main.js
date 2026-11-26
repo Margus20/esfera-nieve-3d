@@ -1,6 +1,6 @@
 import * as dom from './dom.js';
 import { state, GENERATION_PRICE_USD, VIDEO_DURATION_MS } from './state.js';
-// Importamos las nuevas funciones del motor 3D
+// Importamos todas las funciones del motor 3D
 import { initThree, updatePhoto, updateBaseText, updateBaseModel, updateRibbonModel, shake3DSnow, getRendererCanvas, clearFrost3D, addFrost3D, assembleGlobe } from './three-scene.js';
 import { iniciarProcesoVideo } from './payment.js';
 
@@ -36,12 +36,13 @@ dom.photoInput.addEventListener("change", (e) => {
 dom.dedicationInput.addEventListener("input", (e) => {
   const text = e.target.value.trim() || "Feliz Navidad";
   state.lastText = text; 
-  // Pasamos 'gold' por defecto para que el texto se vea bonito
-  updateBaseText(text, "gold"); 
+  // Usamos el color de la cinta actual (o 'gold' por defecto)
+  const currentRibbon = state.currentRibbon || 'gold';
+  updateBaseText(text, currentRibbon); 
 });
 
 /* ==========================================================================
-   3. PERSONALIZACIÓN: CINTAS Y SOPORTES
+   3. PERSONALIZACIÓN: CINTAS Y SOPORTES (CARRUSELES)
    ========================================================================== */
 // Selección de Cinta
 dom.ribbonChips.forEach((chip) => {
@@ -96,17 +97,19 @@ window.addEventListener("devicemotion", (e) => {
 });
 
 /* ==========================================================================
-   5. BOTÓN ENSAMBLAR ESFERA (Magia Final)
+   5. BOTÓN ENSAMBLAR ESFERA (Magia Final y Desbloqueo)
    ========================================================================== */
 if (dom.assembleBtn) {
   dom.assembleBtn.addEventListener("click", () => {
-    assembleGlobe(); 
-    dom.setStatus("¡Esfera ensamblada! Ya puedes agitarla y quitarle la escarcha.");
+    assembleGlobe(); // Llama a la animación y DESBLOQUEA la rotación en Three.js
+    dom.setStatus("¡Esfera ensamblada! Ahora puedes girarla con el dedo.");
     
-    // Ocultamos el botón y los selectores para que ya no se puedan cambiar
+    // Ocultamos el botón de armar
     dom.assembleBtn.style.display = 'none';
-    dom.ribbonChips.forEach(c => c.style.display = 'none');
-    dom.baseChips.forEach(c => c.style.display = 'none');
+    
+    // Ocultamos los carruseles completos y sus etiquetas
+    document.querySelectorAll('.carousel-container').forEach(el => el.style.display = 'none');
+    document.querySelectorAll('.selector-label').forEach(el => el.style.display = 'none');
     
     // Desenfocamos el input para que se vea mejor la esfera
     dom.dedicationInput.blur();
