@@ -11,12 +11,13 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Mountains+of+Christmas:wght@400;700&display=swap" rel="stylesheet">
 
-  <!-- IMPORT MAPS PARA THREE.JS (3D) -->
+  <!-- IMPORT MAPS PARA THREE.JS (archivos locales del repositorio) -->
   <script type="importmap">
     {
       "imports": {
-        "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
-        "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+        "three": "./three.module.js",
+        "three/addons/controls/OrbitControls.js": "./OrbitControls.js",
+        "three/addons/environments/RoomEnvironment.js": "./RoomEnvironment.js"
       }
     }
   </script>
