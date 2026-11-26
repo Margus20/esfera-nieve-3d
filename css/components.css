@@ -37,7 +37,7 @@ input[type="text"] {
   text-align: center;
   outline: none;
   transition: all 0.2s;
-  font-family: 'Mountains of Christmas', cursive, sans-serif; /* Fuente navideña mantenida */
+  font-family: 'Mountains of Christmas', cursive, sans-serif;
   font-weight: 700;
   letter-spacing: 1px;
 }
@@ -55,38 +55,79 @@ input[type="text"]::placeholder {
   letter-spacing: normal;
 }
 
-/* Fila de Temas (Madera, Oro, Noche) */
-.theme-row {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
+/* ==========================================================================
+   CARRUSELES DESLIZABLES (SWIPE) PARA CINTAS Y SOPORTES
+   ========================================================================== */
+.selector-label {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  text-align: center;
+  margin-top: 5px;
+  margin-bottom: -5px;
+  font-weight: 600;
 }
 
-.theme-chip {
-  min-height: 38px;
-  padding: 8px;
+.carousel-container {
+  width: 100%;
+  /* Ocultamos la barra de scroll fea */
+  overflow-x: auto; 
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch; /* Suavidad en iOS/Android */
+  scrollbar-width: none; /* Firefox */
+  /* Aquí está la magia del "snap" (imán) */
+  scroll-snap-type: x mandatory; 
+  padding: 5px 0;
+  /* Efecto de difuminado en los bordes para que parezca que hay más opciones */
+  mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+  -webkit-mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+}
+
+.carousel-container::-webkit-scrollbar {
+  display: none; /* Chrome/Safari */
+}
+
+.carousel-track {
+  display: flex;
+  gap: 10px;
+  width: max-content; /* Permite que los botones se salgan del contenedor */
+  padding: 0 10px;
+}
+
+/* Estilo de los botones dentro del carrusel */
+.carousel-track .theme-chip {
+  scroll-snap-align: center; /* El botón se centra al soltar */
+  min-width: 110px; /* Ancho fijo para que se vean bien al deslizar */
+  flex-shrink: 0;
+  min-height: 42px;
+  padding: 8px 12px;
   border-radius: var(--radius-sm);
-  border: 1px solid rgba(0, 0, 0, 0.05);
-  background: rgba(255, 255, 255, 0.4); 
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  background: rgba(255, 255, 255, 0.7); /* Botones más sólidos */
   color: var(--text-main);
-  font-size: 0.85rem;
+  font-size: 0.9rem;
   font-weight: 700;
   cursor: pointer;
   transition: all 0.2s ease;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.05); /* Sombra para dar volumen */
 }
 
-.theme-chip.active {
+.carousel-track .theme-chip.active {
   background: #eab308; /* Dorado */
   color: #422006; 
   border-color: #ca8a04;
-  box-shadow: 0 0 10px rgba(234, 179, 8, 0.4);
+  box-shadow: 0 4px 10px rgba(234, 179, 8, 0.3);
+  transform: scale(1.05);
 }
 
-/* Cuadrícula de Botones */
+
+/* ==========================================================================
+   BOTONES DE ACCIÓN
+   ========================================================================== */
 .action-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 10px;
+  margin-top: 5px;
 }
 
 /* Estilo base de los botones */
@@ -96,7 +137,7 @@ input[type="text"]::placeholder {
   padding: 10px 12px;
   border-radius: var(--radius-md);
   border: none;
-  font-family: 'Mountains of Christmas', cursive, sans-serif; /* Fuente navideña mantenida */
+  font-family: 'Mountains of Christmas', cursive, sans-serif; 
   font-size: 1.3rem; 
   font-weight: 700;
   text-align: center;
@@ -119,7 +160,16 @@ input[type="text"]::placeholder {
   text-shadow: none;
 }
 
-/* --- COLORES NAVIDEÑOS ORIGINALES MANTENIDOS --- */
+/* Botón de Armar Esfera (Destacado) */
+.btn-assemble {
+  background: linear-gradient(145deg, #fde047, #ca8a04);
+  color: #422006;
+  box-shadow: 0 4px 15px rgba(234, 179, 8, 0.4);
+  margin-top: 10px;
+  font-size: 1.4rem;
+}
+
+/* --- COLORES NAVIDEÑOS --- */
 
 /* 1. Seleccionar foto: Rojo Navidad */
 .btn-photo {
@@ -188,7 +238,7 @@ input[type="text"]::placeholder {
 .modal-card {
   width: 100%;
   max-width: 360px;
-  background: rgba(255, 255, 255, 0.95); /* Tarjeta blanca para el modal */
+  background: rgba(255, 255, 255, 0.95);
   border: 1px solid rgba(255, 255, 255, 0.5);
   border-radius: 24px;
   padding: 24px;
@@ -227,10 +277,10 @@ input[type="text"]::placeholder {
 .btn-cancel {
   background: rgba(0, 0, 0, 0.05);
   color: #0D0D0D;
-  font-family: system-ui, sans-serif; /* Texto normal para cancelar */
+  font-family: system-ui, sans-serif; 
 }
 .btn-confirm {
-  background: linear-gradient(145deg, #22c55e, #15803d); /* Verde */
+  background: linear-gradient(145deg, #22c55e, #15803d); 
   color: #ffffff;
   font-family: 'Mountains of Christmas', cursive, sans-serif;
 }
@@ -241,11 +291,11 @@ input[type="text"]::placeholder {
 @media (min-width: 600px) {
   .panel { max-width: 420px; padding: 24px; gap: 16px; }
   .btn { font-size: 1.5rem; min-height: 52px; } 
-  .theme-chip { font-size: 0.95rem; min-height: 42px; }
+  .carousel-track .theme-chip { font-size: 1rem; min-height: 46px; min-width: 130px; }
 }
 
 @media (min-width: 960px) {
   .panel { grid-area: panel; max-width: 400px; }
   .btn:hover { filter: brightness(1.05); }
-  .theme-chip:hover { background: rgba(255,255,255,0.7); }
+  .carousel-track .theme-chip:hover { background: rgba(255,255,255,0.9); }
 }
