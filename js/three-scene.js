@@ -4,7 +4,7 @@ import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { state, THEMES } from './state.js';
 
 let scene, camera, renderer, controls;
-let globeGlass, snowParticles, photoPlane, baseMesh, textMesh, textCanvas, textTexture, snowFloor;
+let globeGlass, snowParticles, photoPlane, baseMesh, textMesh, textCanvas, textTexture, snowFloor, contactShadow;
 let snowVelocity = [];
 
 let frostProgress = 1.0; 
@@ -17,9 +17,9 @@ function createWoodTexture() {
   const canvas = document.createElement('canvas');
   canvas.width = 512; canvas.height = 512;
   const ctx = canvas.getContext('2d');
-  ctx.fillStyle = '#6b3e1b'; // Madera base
+  ctx.fillStyle = '#6b3e1b';
   ctx.fillRect(0,0,512,512);
-  ctx.strokeStyle = '#3e1d0d'; // Vetas oscuras
+  ctx.strokeStyle = '#3e1d0d';
   ctx.lineWidth = 3;
   for(let i=0; i<80; i++) {
     ctx.beginPath();
@@ -37,9 +37,9 @@ function createMarbleTexture() {
   const canvas = document.createElement('canvas');
   canvas.width = 512; canvas.height = 512;
   const ctx = canvas.getContext('2d');
-  ctx.fillStyle = '#f8fafc'; // Blanco mármol
+  ctx.fillStyle = '#f8fafc';
   ctx.fillRect(0,0,512,512);
-  ctx.strokeStyle = '#cbd5e1'; // Venas grises
+  ctx.strokeStyle = '#cbd5e1';
   ctx.lineWidth = 1.5;
   for(let i=0; i<40; i++) {
     ctx.beginPath();
@@ -49,6 +49,21 @@ function createMarbleTexture() {
   }
   const tex = new THREE.CanvasTexture(canvas);
   tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  return tex;
+}
+
+// --- SOMBRA DE CONTACTO PARA LA FOTO ---
+function createContactShadowTexture() {
+  const canvas = document.createElement('canvas');
+  canvas.width = 256; canvas.height = 256;
+  const ctx = canvas.getContext('2d');
+  const gradient = ctx.createRadialGradient(128, 128, 0, 128, 128, 128);
+  gradient.addColorStop(0, 'rgba(0,0,0,0.6)');
+  gradient.addColorStop(0.5, 'rgba(0,0,0,0.2)');
+  gradient.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = gradient;
+  ctx.fillRect(0, 0, 256, 256);
+  const tex = new THREE.CanvasTexture(canvas);
   return tex;
 }
 
@@ -66,7 +81,7 @@ export function initThree() {
   renderer.setSize(container.clientWidth, container.clientHeight);
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); 
   renderer.toneMapping = THREE.ACESFilmicToneMapping; 
-  renderer.toneMappingExposure = 1.0;
+  renderer.toneMappingExposure = 1.2;
   container.appendChild(renderer.domElement);
 
   controls = new OrbitControls(camera, renderer.domElement);
@@ -76,14 +91,11 @@ export function initThree() {
   controls.minDistance = 12;
   controls.maxDistance = 28;
   controls.maxPolarAngle = Math.PI / 2 + 0.2; 
-  
-  // ¡BLOQUEAMOS LA ROTACIÓN AL INICIO!
   controls.enabled = false; 
 
   const pmremGenerator = new THREE.PMREMGenerator(renderer);
   scene.environment = pmremGenerator.fromScene(new RoomEnvironment(), 0.04).texture;
 
-  // Iluminación más suave para realismo
   scene.add(new THREE.AmbientLight(0xffffff, 0.8));
   const dirLight = new THREE.DirectionalLight(0xffffff, 1.5);
   dirLight.position.set(5, 10, 7);
@@ -97,17 +109,15 @@ export function initThree() {
   // ELEMENTO 1: LA VASIJA (LatheGeometry Realista)
   // ==========================================
   const profilePoints = [];
-  // Creamos el perfil de la vasija (eje X = radio, eje Y = altura)
-  profilePoints.push(new THREE.Vector2(0, 0));           // Centro abajo
-  profilePoints.push(new THREE.Vector2(4.2, 0));         // Borde inferior
-  profilePoints.push(new THREE.Vector2(4.8, 0.6));       // Panza ancha
-  profilePoints.push(new THREE.Vector2(4.4, 1.4));       // Cuello
-  profilePoints.push(new THREE.Vector2(4.0, 1.4));       // Borde superior interior
-  profilePoints.push(new THREE.Vector2(0, 1.4));         // Centro arriba
+  profilePoints.push(new THREE.Vector2(0, 0));
+  profilePoints.push(new THREE.Vector2(4.2, 0));
+  profilePoints.push(new THREE.Vector2(4.8, 0.6));
+  profilePoints.push(new THREE.Vector2(4.4, 1.4));
+  profilePoints.push(new THREE.Vector2(4.0, 1.4));
+  profilePoints.push(new THREE.Vector2(0, 1.4));
 
   const baseGeo = new THREE.LatheGeometry(profilePoints, 64);
   
-  // Material inicial (Madera)
   const woodTex = createWoodTexture();
   const baseMat = new THREE.MeshStandardMaterial({
     map: woodTex,
@@ -117,7 +127,7 @@ export function initThree() {
   });
   
   baseMesh = new THREE.Mesh(baseGeo, baseMat);
-  baseMesh.position.y = -8; // Posición inicial de separación
+  baseMesh.position.y = -8;
   scene.add(baseMesh);
 
   // ==========================================
@@ -138,7 +148,7 @@ export function initThree() {
     metalness: 0.5 
   });
   textMesh = new THREE.Mesh(textGeo, textMat);
-  textMesh.position.y = -4.5; // Flotando
+  textMesh.position.y = -6;
   scene.add(textMesh);
 
   document.fonts.ready.then(() => {
@@ -149,9 +159,8 @@ export function initThree() {
   // ELEMENTO 3: LA ESFERA (Cristal, Foto, Nieve)
   // ==========================================
   
-  // 3.1 Piso de Nieve (Bajado y con relieve irregular)
+  // 3.1 Piso de Nieve
   const snowFloorGeo = new THREE.SphereGeometry(4.8, 64, 32, 0, Math.PI * 2, Math.PI / 2, Math.PI / 2);
-  // Hacemos que la nieve no sea perfectamente redonda
   const positions = snowFloorGeo.attributes.position.array;
   for (let i = 0; i < positions.length; i += 3) {
     positions[i] += (Math.random() - 0.5) * 0.1;
@@ -167,12 +176,12 @@ export function initThree() {
     side: THREE.DoubleSide
   });
   snowFloor = new THREE.Mesh(snowFloorGeo, snowFloorMat);
-  snowFloor.position.y = -2.5; // El nivel del suelo
+  snowFloor.position.y = -2.5;
+  snowFloor.renderOrder = 1;
   scene.add(snowFloor);
 
-  // 3.2 La Foto (Carta curvada - Diorama)
-  // Creamos una sola tarjeta que abarca 60 grados de curva para un look 3D
-  const photoGeo = new THREE.CylinderGeometry(3, 3, 4.5, 32, 1, true, -Math.PI/6, Math.PI/3);
+  // 3.2 La Foto (Plano simple vertical, apoyado en la nieve)
+  const photoGeo = new THREE.PlaneGeometry(3.5, 3.5);
   const photoMat = new THREE.MeshStandardMaterial({ 
     color: 0xffffff,
     transparent: true,
@@ -181,26 +190,46 @@ export function initThree() {
     metalness: 0.0
   });
   photoPlane = new THREE.Mesh(photoGeo, photoMat);
-  photoPlane.position.set(0, 0, 1.2); // Centrada frente a la cámara
-  photoPlane.rotation.y = Math.PI / 2; // Orientada hacia nosotros
+  // El piso de nieve está en y=-2.5. La foto mide 3.5 de alto.
+  // El centro debe estar en y = -2.5 + (3.5/2) = -2.5 + 1.75 = -0.75
+  photoPlane.position.set(0, -0.75, 0);
+  photoPlane.renderOrder = 10;
   scene.add(photoPlane);
 
-  // 3.3 El Cristal
+  // 3.3 Sombra de contacto bajo la foto (nuevo)
+  const shadowTex = createContactShadowTexture();
+  const shadowGeo = new THREE.PlaneGeometry(3.5, 3.5);
+  const shadowMat = new THREE.MeshBasicMaterial({
+    map: shadowTex,
+    transparent: true,
+    depthWrite: false,
+    opacity: 0.8
+  });
+  contactShadow = new THREE.Mesh(shadowGeo, shadowMat);
+  contactShadow.rotation.x = -Math.PI / 2;
+  contactShadow.position.set(0, -2.45, 0);
+  contactShadow.renderOrder = 5;
+  scene.add(contactShadow);
+
+  // 3.4 El Cristal (corregido para ser transparente como vidrio real)
   const glassGeo = new THREE.SphereGeometry(5, 64, 64);
   const glassMat = new THREE.MeshPhysicalMaterial({
     color: 0xffffff,
-    metalness: 0.1,
-    roughness: 0.9,      
+    metalness: 0.0,
+    roughness: 0.05,
     transparent: true,
-    opacity: 0.85,       
+    opacity: 0.15,
     clearcoat: 1.0,
-    clearcoatRoughness: 0.8
+    clearcoatRoughness: 0.05,
+    depthWrite: false,
+    side: THREE.FrontSide
   });
   globeGlass = new THREE.Mesh(glassGeo, glassMat);
   globeGlass.position.y = 0;
+  globeGlass.renderOrder = 100;
   scene.add(globeGlass);
 
-  // 3.4 La Nieve 3D
+  // 3.5 La Nieve 3D
   const snowGeo = new THREE.BufferGeometry();
   const snowCount = 300; 
   const snowPositions = new Float32Array(snowCount * 3);
@@ -224,7 +253,7 @@ export function initThree() {
   snowGeo.setAttribute('position', new THREE.BufferAttribute(snowPositions, 3));
   const snowMat = new THREE.PointsMaterial({ 
     color: 0xffffff, 
-    size: 0.12, // Copos un poco más finos
+    size: 0.12,
     transparent: true, 
     opacity: 0.9,
     depthWrite: false 
@@ -253,7 +282,7 @@ export function updateBaseText(text, themeName = "gold") {
   } else if (themeName === 'black') {
     ctx.fillStyle = '#1e293b'; 
     ctx.fillRect(0, 0, textCanvas.width, textCanvas.height);
-    ctx.fillStyle = '#f8fafc'; // Texto blanco para cinta negra
+    ctx.fillStyle = '#f8fafc';
   } else {
     const grad = ctx.createLinearGradient(0, 0, 0, textCanvas.height);
     grad.addColorStop(0, '#fdf08a');
@@ -344,7 +373,6 @@ export function updateRibbonModel(ribbonType) {
 export function assembleGlobe() {
   isAssembling = true;
   assemblyProgress = 0;
-  // ¡AQUÍ DESBLOQUEAMOS LA ROTACIÓN!
   controls.enabled = true; 
 }
 
@@ -361,9 +389,10 @@ export function addFrost3D() {
   frostProgress = 1.0;
   isClearingFrost = false;
   if (globeGlass) {
-    globeGlass.material.roughness = 0.9;
-    globeGlass.material.opacity = 0.85; 
-    globeGlass.material.clearcoatRoughness = 0.8;
+    globeGlass.material.roughness = 0.6;
+    globeGlass.material.opacity = 0.5; 
+    globeGlass.material.clearcoatRoughness = 0.5;
+    globeGlass.material.needsUpdate = true;
   }
 }
 
@@ -382,12 +411,13 @@ function animate() {
   controls.update();
 
   if (isAssembling && assemblyProgress < 1) {
-    assemblyProgress += 0.03; 
+    assemblyProgress += 0.02; 
     if (assemblyProgress > 1) assemblyProgress = 1;
     
-    // Acople suave
-    baseMesh.position.y = THREE.MathUtils.lerp(-8, -4.5, assemblyProgress);
-    textMesh.position.y = THREE.MathUtils.lerp(-4.5, -4.2, assemblyProgress);
+    // La base sube de -8 a -5 (queda debajo de la esfera)
+    baseMesh.position.y = THREE.MathUtils.lerp(-8, -5, assemblyProgress);
+    // La cinta sube de -6 a -4.5 (queda en la unión base-esfera)
+    textMesh.position.y = THREE.MathUtils.lerp(-6, -4.5, assemblyProgress);
   }
 
   if (snowParticles) {
@@ -399,7 +429,6 @@ function animate() {
       positions[i3 + 2] += Math.cos(snowVelocity[i].sway) * 0.005;
       snowVelocity[i].sway += 0.02;
 
-      // Rebote en el piso (-2.5)
       if (positions[i3 + 1] < -2.5) {
         positions[i3 + 1] = 4.5;
         positions[i3] = (Math.random() - 0.5) * 8;
@@ -414,9 +443,9 @@ function animate() {
     frostProgress -= 0.02; 
     if (frostProgress < 0) frostProgress = 0;
 
-    globeGlass.material.opacity = THREE.MathUtils.lerp(0.0, 0.85, frostProgress);
-    globeGlass.material.roughness = THREE.MathUtils.lerp(0.0, 0.9, frostProgress);
-    globeGlass.material.clearcoatRoughness = THREE.MathUtils.lerp(0.0, 0.8, frostProgress);
+    globeGlass.material.opacity = THREE.MathUtils.lerp(0.15, 0.5, frostProgress);
+    globeGlass.material.roughness = THREE.MathUtils.lerp(0.05, 0.6, frostProgress);
+    globeGlass.material.clearcoatRoughness = THREE.MathUtils.lerp(0.05, 0.5, frostProgress);
     globeGlass.material.needsUpdate = true;
   }
 
