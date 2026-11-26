@@ -24,13 +24,12 @@
 <body>
 
   <header class="header">
-    <!-- Toca este título 5 veces rápido para activar tu Modo Suite (Gratis) -->
     <h1 id="mainTitle">Esfera de Nieve</h1>
-    <p>Sube una foto, gira la esfera y comparte un recuerdo.</p>
+    <p>Sube una foto, personaliza y comparte un recuerdo.</p>
   </header>
 
   <main class="stage">
-    <!-- Contenedor para el motor 3D (Three.js inyectará el canvas aquí) -->
+    <!-- Contenedor para el motor 3D -->
     <div id="canvas-container"></div>
   </main>
 
@@ -49,22 +48,28 @@
       aria-label="Escribe tu dedicatoria navideña"
     />
 
-    <!-- Selector de Cinta -->
-    <div class="theme-row" role="group" aria-label="Estilo de la cinta">
-      <button type="button" class="theme-chip ribbon-chip active" data-ribbon="gold">Cinta Oro</button>
-      <button type="button" class="theme-chip ribbon-chip" data-ribbon="black">Cinta Negra</button>
-      <button type="button" class="theme-chip ribbon-chip" data-ribbon="white">Cinta Blanca</button>
+    <!-- Selector de Cinta (Carrusel Deslizable) -->
+    <div class="selector-label">Desliza para elegir Cinta:</div>
+    <div class="carousel-container">
+      <div class="carousel-track">
+        <button type="button" class="theme-chip ribbon-chip active" data-ribbon="gold">Cinta Oro</button>
+        <button type="button" class="theme-chip ribbon-chip" data-ribbon="black">Cinta Negra</button>
+        <button type="button" class="theme-chip ribbon-chip" data-ribbon="white">Cinta Blanca</button>
+      </div>
     </div>
 
-    <!-- Selector de Soporte -->
-    <div class="theme-row" role="group" aria-label="Estilo del soporte">
-      <button type="button" class="theme-chip base-chip active" data-base="wood">Soporte Madera</button>
-      <button type="button" class="theme-chip base-chip" data-base="marble">Soporte Mármol</button>
-      <button type="button" class="theme-chip base-chip" data-base="gold">Soporte Oro</button>
+    <!-- Selector de Soporte (Carrusel Deslizable) -->
+    <div class="selector-label">Desliza para elegir Soporte:</div>
+    <div class="carousel-container">
+      <div class="carousel-track">
+        <button type="button" class="theme-chip base-chip active" data-base="wood">Soporte Madera</button>
+        <button type="button" class="theme-chip base-chip" data-base="marble">Soporte Mármol</button>
+        <button type="button" class="theme-chip base-chip" data-base="gold">Soporte Oro</button>
+      </div>
     </div>
 
     <!-- Botón de Armar Esfera -->
-    <button type="button" class="btn btn-assemble" id="assembleBtn" style="background: linear-gradient(145deg, #fde047, #ca8a04); color: #422006; margin-top: 5px;">Armar Esfera</button>
+    <button type="button" class="btn btn-assemble" id="assembleBtn" style="background: linear-gradient(145deg, #fde047, #ca8a04); color: #422006; margin-top: 10px; box-shadow: 0 4px 15px rgba(234, 179, 8, 0.4);">Armar Esfera</button>
 
     <!-- Botones de Acción -->
     <div class="action-grid">
